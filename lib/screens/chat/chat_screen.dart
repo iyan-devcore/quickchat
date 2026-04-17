@@ -429,8 +429,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 isMe: isMe,
                                 senderName: widget.isGroup ? chatProvider.getSenderName(message.senderId) : null,
                                 onLongPress: () {
-                                  if (isMe && !message.isDeleted) {
-                                    _showMessageOptions(context, message, chatProvider);
+                                  if (!message.isDeleted) {
+                                    _showMessageOptions(context, message, chatProvider, isMe);
                                   }
                                 },
                               ),
@@ -606,7 +606,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _showMessageOptions(BuildContext context, Message message, ChatProvider chatProvider) {
+  void _showMessageOptions(BuildContext context, Message message, ChatProvider chatProvider, bool isMe) {
+    final List<String> emojis = ['❤️', '😂', '👍', '😮', '😢', '👏'];
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -617,7 +618,23 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (message.type == MessageType.text)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: emojis.map((emoji) {
+                    return GestureDetector(
+                      onTap: () {
+                        chatProvider.toggleReaction(message.roomId, message.id, emoji);
+                        Navigator.pop(context);
+                      },
+                      child: Text(emoji, style: const TextStyle(fontSize: 28)),
+                    );
+                  }).toList(),
+                ),
+              ),
+              if (isMe) const Divider(height: 1),
+              if (isMe && message.type == MessageType.text)
                 ListTile(
                   leading: const Icon(Icons.edit, color: Colors.blue),
                   title: const Text('Edit message'),
@@ -634,14 +651,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     });
                   },
                 ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete for everyone'),
-                onTap: () {
-                  Navigator.pop(context);
-                  chatProvider.deleteMessage(message.id, widget.chatId);
-                },
-              ),
+              if (isMe)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text('Delete for everyone'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    chatProvider.deleteMessage(message.id, message.roomId);
+                  },
+                ),
             ],
           ),
         );

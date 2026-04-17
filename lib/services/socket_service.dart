@@ -71,6 +71,11 @@ class SocketService {
     _socket?.emit('join_room', {'roomId': roomId});
   }
 
+  /// Mark all messages from other users in the room as read
+  void markRoomRead(String roomId) {
+    _socket?.emit('mark_room_read', {'roomId': roomId});
+  }
+
   /// Send a text message to a chat room.
   ///
   /// The server will:
@@ -106,6 +111,14 @@ class SocketService {
     });
   }
 
+  void toggleReaction(String roomId, String messageId, String emoji) {
+    _socket?.emit('toggle_reaction', {
+      'roomId': roomId,
+      'messageId': messageId,
+      'emoji': emoji,
+    });
+  }
+
   /// Listen for incoming messages in any joined room.
   ///
   /// [callback] receives the message data as a Map containing:
@@ -133,6 +146,20 @@ class SocketService {
   /// Listen for a user going offline.
   void onUserOffline(Function(Map<String, dynamic> data) callback) {
     _socket?.on('user_offline', (data) {
+      callback(Map<String, dynamic>.from(data));
+    });
+  }
+
+  /// Listen for read receipts.
+  void onRoomMessagesRead(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('room_messages_read', (data) {
+      callback(Map<String, dynamic>.from(data));
+    });
+  }
+
+  /// Listen for reaction updates.
+  void onMessageReactionUpdated(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('message_reaction_updated', (data) {
       callback(Map<String, dynamic>.from(data));
     });
   }

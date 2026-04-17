@@ -23,6 +23,7 @@ class Message {
   final bool isEncrypted;
   final bool isGroup;
   final String? replyTo;
+  final Map<String, String> reactions;
 
   Message({
     required this.id,
@@ -39,6 +40,7 @@ class Message {
     this.isEncrypted = false,
     this.isGroup = false,
     this.replyTo,
+    this.reactions = const {},
   });
 
   Message copyWith({
@@ -56,6 +58,7 @@ class Message {
     bool? isEncrypted,
     bool? isGroup,
     String? replyTo,
+    Map<String, String>? reactions,
   }) {
     return Message(
       id: id ?? this.id,
@@ -72,6 +75,7 @@ class Message {
       isEncrypted: isEncrypted ?? this.isEncrypted,
       isGroup: isGroup ?? this.isGroup,
       replyTo: replyTo ?? this.replyTo,
+      reactions: reactions ?? this.reactions,
     );
   }
 
@@ -94,6 +98,11 @@ class Message {
       isEncrypted: json['isEncrypted'] ?? false,
       isGroup: json['isGroup'] ?? false,
       replyTo: json['replyTo']?.toString(),
+      reactions: json['reactions'] != null
+          ? Map.fromEntries(
+              (json['reactions'] as List).map((r) => MapEntry(r['userId'].toString(), r['emoji'].toString()))
+            )
+          : {},
     );
   }
 
@@ -114,6 +123,7 @@ class Message {
       'isEncrypted': isEncrypted,
       'isGroup': isGroup,
       'replyTo': replyTo,
+      'reactions': reactions.entries.map((e) => {'userId': e.key, 'emoji': e.value}).toList(),
     };
   }
 

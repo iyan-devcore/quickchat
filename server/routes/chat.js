@@ -149,6 +149,7 @@ router.get('/conversations', async (req, res) => {
           isDeleted: lastMessage.isDeleted || false,
           isEdited: lastMessage.isEdited || false,
           replyTo: lastMessage.replyTo ? lastMessage.replyTo.toString() : null,
+          reactions: lastMessage.reactions || [],
         },
         unreadCount,
       });
@@ -207,6 +208,7 @@ router.get('/messages/:roomId', async (req, res) => {
       isDeleted: m.isDeleted || false,
       isEdited: m.isEdited || false,
       replyTo: m.replyTo ? m.replyTo.toString() : null,
+      reactions: m.reactions || [],
     }));
 
     res.json(formatted);

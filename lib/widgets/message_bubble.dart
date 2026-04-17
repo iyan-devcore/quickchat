@@ -21,6 +21,21 @@ class MessageBubble extends StatelessWidget {
     this.onLongPress,
   });
 
+  List<Widget> _buildReactionsWidgets(Map<String, String> reactions) {
+    if (reactions.isEmpty) return [];
+    Map<String, int> counts = {};
+    for (var emoji in reactions.values) {
+      counts[emoji] = (counts[emoji] ?? 0) + 1;
+    }
+    List<Widget> widgets = [];
+    counts.forEach((emoji, count) {
+      widgets.add(Text(count > 1 ? '$emoji $count' : emoji, style: const TextStyle(fontSize: 12)));
+      widgets.add(const SizedBox(width: 4));
+    });
+    if (widgets.isNotEmpty) widgets.removeLast();
+    return widgets;
+  }
+
   @override
   Widget build(BuildContext context) {
     var extractedUrl = message.content;
@@ -58,7 +73,10 @@ class MessageBubble extends StatelessWidget {
                   ),
                 ),
               ),
-            Container(
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
               margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
@@ -214,9 +232,13 @@ class MessageBubble extends StatelessWidget {
                     if (isMe) ...[
                       const SizedBox(width: 4),
                       Icon(
-                        message.status == MessageStatus.read ? Icons.done_all : Icons.done,
-                        size: 12,
-                        color: message.status == MessageStatus.read ? Colors.lightBlueAccent : Colors.white70,
+                        message.status == MessageStatus.sent 
+                          ? Icons.done 
+                          : Icons.done_all,
+                        size: 14,
+                        color: message.status == MessageStatus.read 
+                          ? Colors.lightBlueAccent 
+                          : Colors.grey,
                       ),
                     ],
                   ],
@@ -224,6 +246,32 @@ class MessageBubble extends StatelessWidget {
               ],
             ),
           ),
+          if (message.reactions.isNotEmpty)
+            Positioned(
+              bottom: -6,
+              right: isMe ? 18 : null,
+              left: !isMe ? 18 : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _buildReactionsWidgets(message.reactions),
+                ),
+              ),
+            ),
+        ],
+      ),
+      if (message.reactions.isNotEmpty)
+        const SizedBox(height: 8),
+    ],
         ],
       ),
     );

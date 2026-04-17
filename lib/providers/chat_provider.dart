@@ -144,6 +144,49 @@ class ChatProvider with ChangeNotifier {
       
       await _handleMessageEdited(roomId, messageId, newContent, iv: iv, mac: mac);
     });
+
+    // ── Messages read ──
+    _socketService!.onRoomMessagesRead((data) {
+      final roomId = data['roomId'].toString();
+      final byUserId = data['byUserId'].toString();
+      _handleRoomMessagesRead(roomId, byUserId);
+    });
+
+    // ── Message Reactions ──
+    _socketService!.onMessageReactionUpdated((data) {
+      final roomId = data['roomId'].toString();
+      final messageId = data['messageId'].toString();
+      final rawReactions = data['reactions'] as List;
+      final Map<String, String> updatedReactions = Map.fromEntries(
+        rawReactions.map((r) => MapEntry(r['userId'].toString(), r['emoji'].toString()))
+      );
+      _handleReactionUpdated(roomId, messageId, updatedReactions);
+    });
+  }
+
+  void _handleReactionUpdated(String roomId, String messageId, Map<String, String> reactions) {
+    if (_messageCache.containsKey(roomId)) {
+      final index = _messageCache[roomId]!.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        _messageCache[roomId]![index] = _messageCache[roomId]![index].copyWith(reactions: reactions);
+        notifyListeners();
+      }
+    }
+  }
+
+  void _handleRoomMessagesRead(String roomId, String byUserId) {
+    if (_messageCache.containsKey(roomId)) {
+      bool updated = false;
+      for (int i = 0; i < _messageCache[roomId]!.length; i++) {
+        final message = _messageCache[roomId]![i];
+        // If message was sent by me and the other user read it
+        if (message.senderId == _currentUserId && message.status != MessageStatus.read) {
+          _messageCache[roomId]![i] = message.copyWith(status: MessageStatus.read);
+          updated = true;
+        }
+      }
+      if (updated) notifyListeners();
+    }
   }
 
   void _handleMessageDeleted(String roomId, String messageId) {
@@ -537,6 +580,10 @@ class ChatProvider with ChangeNotifier {
     _handleMessageDeleted(roomId, messageId);
   }
 
+  void toggleReaction(String roomId, String messageId, String emoji) {
+    _socketService?.toggleReaction(roomId, messageId, emoji);
+  }
+
   Future<void> editMessage(String messageId, String roomId, String newContent, {String? otherUserId, bool isGroup = false}) async {
     if (_socketService == null || _encryptionService == null || newContent.trim().isEmpty) return;
 
@@ -665,12 +712,16 @@ class ChatProvider with ChangeNotifier {
   /// Join a chat room to receive real-time messages.
   void joinRoom(String roomId) {
     _socketService?.joinRoom(roomId);
+    _socketService?.markRoomRead(roomId);
   }
 
   /// Clear a conversation's unread count (when user opens the chat).
   void clearUnread(String roomId) {
     final index = _chats.indexWhere((c) => c.id == roomId);
     if (index >= 0) {
+      if (_chats[index].unreadCount > 0) {
+        _socketService?.markRoomRead(roomId);
+      }
       _chats[index] = _chats[index].copyWith(unreadCount: 0);
       notifyListeners();
     }

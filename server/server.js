@@ -157,6 +157,7 @@ io.on('connection', async (socket) => {
         isEncrypted: message.isEncrypted,
         isGroup: message.isGroup,
         replyTo: message.replyTo ? message.replyTo.toString() : null,
+        reactions: [],
       };
 
       // 3. Broadcast to all users in the room
@@ -213,6 +214,60 @@ io.on('connection', async (socket) => {
       }
     } catch (err) {
       console.error('Edit message error:', err.message);
+    }
+  });
+
+  // ─────────────────────────────────────────
+  // Event: toggle_reaction
+  // ─────────────────────────────────────────
+  socket.on('toggle_reaction', async (data) => {
+    try {
+      const { messageId, roomId, emoji } = data;
+      const message = await Message.findById(messageId);
+      if (!message || message.isDeleted) return;
+
+      const existingReactionIndex = message.reactions.findIndex(
+        r => r.userId.toString() === userId
+      );
+
+      if (existingReactionIndex !== -1) {
+        if (message.reactions[existingReactionIndex].emoji === emoji) {
+          // Remove reaction if clicking the same emoji again
+          message.reactions.splice(existingReactionIndex, 1);
+        } else {
+          // Change reaction
+          message.reactions[existingReactionIndex].emoji = emoji;
+        }
+      } else {
+        // Add new reaction
+        message.reactions.push({ userId, emoji });
+      }
+
+      await message.save();
+
+      io.to(roomId).emit('message_reaction_updated', {
+        messageId,
+        roomId,
+        reactions: message.reactions
+      });
+    } catch (err) {
+      console.error('Toggle reaction error:', err.message);
+    }
+  });
+
+  // ─────────────────────────────────────────
+  // Event: mark_room_read
+  // ─────────────────────────────────────────
+  socket.on('mark_room_read', async (data) => {
+    try {
+      const { roomId } = data;
+      await Message.updateMany(
+        { roomId, senderId: { $ne: userId }, status: { $ne: 'read' } },
+        { status: 'read' }
+      );
+      socket.to(roomId).emit('room_messages_read', { roomId, byUserId: userId });
+    } catch (err) {
+      console.error('Mark room read error:', err.message);
     }
   });
 
