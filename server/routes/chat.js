@@ -146,6 +146,9 @@ router.get('/conversations', async (req, res) => {
           iv: lastMessage.iv,
           mac: lastMessage.mac,
           isEncrypted: lastMessage.isEncrypted || false,
+          isDeleted: lastMessage.isDeleted || false,
+          isEdited: lastMessage.isEdited || false,
+          replyTo: lastMessage.replyTo ? lastMessage.replyTo.toString() : null,
         },
         unreadCount,
       });
@@ -201,6 +204,9 @@ router.get('/messages/:roomId', async (req, res) => {
       iv: m.iv,
       mac: m.mac,
       isEncrypted: m.isEncrypted || false,
+      isDeleted: m.isDeleted || false,
+      isEdited: m.isEdited || false,
+      replyTo: m.replyTo ? m.replyTo.toString() : null,
     }));
 
     res.json(formatted);

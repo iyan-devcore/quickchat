@@ -45,6 +45,16 @@ class ChatProvider with ChangeNotifier {
     return _messageCache[roomId] ?? [];
   }
 
+  /// Get a single message by ID
+  Message? getMessageById(String roomId, String messageId) {
+    if (!_messageCache.containsKey(roomId)) return null;
+    try {
+      return _messageCache[roomId]!.firstWhere((m) => m.id == messageId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Check if a user is currently online.
   bool isUserOnline(String userId) => _onlineUsers.contains(userId);
 
@@ -116,6 +126,55 @@ class ChatProvider with ChangeNotifier {
       }
       notifyListeners();
     });
+
+    // ── Message deleted ──
+    _socketService!.onMessageDeleted((data) {
+      final roomId = data['roomId'].toString();
+      final messageId = data['messageId'].toString();
+      _handleMessageDeleted(roomId, messageId);
+    });
+
+    // ── Message edited ──
+    _socketService!.onMessageEdited((data) async {
+      final roomId = data['roomId'].toString();
+      final messageId = data['messageId'].toString();
+      final newContent = data['newContent'].toString();
+      final iv = data['iv']?.toString();
+      final mac = data['mac']?.toString();
+      
+      await _handleMessageEdited(roomId, messageId, newContent, iv: iv, mac: mac);
+    });
+  }
+
+  void _handleMessageDeleted(String roomId, String messageId) {
+    if (_messageCache.containsKey(roomId)) {
+      final index = _messageCache[roomId]!.indexWhere((m) => m.id == messageId);
+      if (index >= 0) {
+        _messageCache[roomId]![index] = _messageCache[roomId]![index].copyWith(
+          isDeleted: true,
+          content: 'This message was deleted',
+          isEncrypted: false,
+        );
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> _handleMessageEdited(String roomId, String messageId, String newContent, {String? iv, String? mac}) async {
+    if (_messageCache.containsKey(roomId)) {
+      final index = _messageCache[roomId]!.indexWhere((m) => m.id == messageId);
+      if (index >= 0) {
+        var msg = _messageCache[roomId]![index].copyWith(
+          content: newContent,
+          isEdited: true,
+          iv: iv ?? _messageCache[roomId]![index].iv,
+          mac: mac ?? _messageCache[roomId]![index].mac,
+        );
+        msg = await _decryptMessage(msg);
+        _messageCache[roomId]![index] = msg;
+        notifyListeners();
+      }
+    }
   }
 
   /// Handle a newly received message (from socket).
@@ -407,7 +466,7 @@ class ChatProvider with ChangeNotifier {
   }
 
   /// Send a message to a room via Socket.io.
-  Future<void> sendMessage(String roomId, String content, {String? otherUserId, bool isGroup = false}) async {
+  Future<void> sendMessage(String roomId, String content, {String? otherUserId, bool isGroup = false, String type = 'text', String? replyTo}) async {
     if (_socketService == null || _encryptionService == null || content.trim().isEmpty) return;
 
     if (isGroup) {
@@ -425,6 +484,8 @@ class ChatProvider with ChangeNotifier {
             iv: encryptedData['nonce'],
             mac: encryptedData['mac'],
             isEncrypted: true,
+            type: type,
+            replyTo: replyTo,
           );
           return;
         } catch (e) {
@@ -458,6 +519,7 @@ class ChatProvider with ChangeNotifier {
             iv: encryptedData['nonce'],
             mac: encryptedData['mac'],
             isEncrypted: true,
+            type: type,
           );
           return;
         } catch (e) {
@@ -467,7 +529,77 @@ class ChatProvider with ChangeNotifier {
     }
 
     // Fallback: send unencrypted
-    _socketService!.sendMessage(roomId, content.trim(), isEncrypted: false);
+    _socketService!.sendMessage(roomId, content.trim(), isEncrypted: false, type: type, replyTo: replyTo);
+  }
+
+  void deleteMessage(String messageId, String roomId) {
+    _socketService?.deleteMessage(messageId, roomId);
+    _handleMessageDeleted(roomId, messageId);
+  }
+
+  Future<void> editMessage(String messageId, String roomId, String newContent, {String? otherUserId, bool isGroup = false}) async {
+    if (_socketService == null || _encryptionService == null || newContent.trim().isEmpty) return;
+
+    String? finalContent = newContent.trim();
+    String? iv;
+    String? mac;
+
+    // Encrypt updated message if necessary
+    if (isGroup) {
+      final groupKey = _groupKeys[roomId];
+      if (groupKey != null) {
+        try {
+          final encryptedData = await _encryptionService!.encryptGroupMessage(
+            message: finalContent,
+            groupKey: groupKey,
+          );
+          finalContent = encryptedData['ciphertext']!;
+          iv = encryptedData['nonce'];
+          mac = encryptedData['mac'];
+        } catch (e) {
+          print('Group encryption failed: $e');
+        }
+      }
+    } else {
+      String? recipientPublicKey;
+      if (otherUserId != null) {
+        recipientPublicKey = _userPublicKeyCache[otherUserId];
+      }
+      if (recipientPublicKey == null) {
+        try {
+          final chat = _chats.firstWhere((c) => c.id == roomId);
+          recipientPublicKey = chat.otherUser?.publicKey;
+        } catch (_) {}
+      }
+
+      if (recipientPublicKey != null && recipientPublicKey.isNotEmpty) {
+        try {
+          final encryptedData = await _encryptionService!.encryptMessage(
+            message: finalContent,
+            recipientPublicKey: recipientPublicKey,
+          );
+          finalContent = encryptedData['ciphertext']!;
+          iv = encryptedData['nonce'];
+          mac = encryptedData['mac'];
+        } catch (e) {
+          print('1-on-1 encryption failed: $e');
+        }
+      }
+    }
+
+    _socketService!.editMessage(messageId, roomId, finalContent, iv: iv, mac: mac);
+
+    // Optimistically update UI
+    if (_messageCache.containsKey(roomId)) {
+      final index = _messageCache[roomId]!.indexWhere((m) => m.id == messageId);
+      if (index >= 0) {
+        _messageCache[roomId]![index] = _messageCache[roomId]![index].copyWith(
+          content: newContent.trim(),
+          isEdited: true,
+        );
+        notifyListeners();
+      }
+    }
   }
 
   /// Decrypt a message if it's encrypted.

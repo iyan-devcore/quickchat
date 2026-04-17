@@ -84,6 +84,7 @@ class SocketService {
     String? mac,
     bool isEncrypted = false,
     bool isGroup = false,
+    String? replyTo,
   }) {
     _socket?.emit('send_message', {
       'roomId': roomId,
@@ -93,6 +94,7 @@ class SocketService {
       'mac': mac,
       'isEncrypted': isEncrypted,
       'isGroup': isGroup,
+      'replyTo': replyTo,
     });
   }
 
@@ -131,6 +133,35 @@ class SocketService {
   /// Listen for a user going offline.
   void onUserOffline(Function(Map<String, dynamic> data) callback) {
     _socket?.on('user_offline', (data) {
+      callback(Map<String, dynamic>.from(data));
+    });
+  }
+
+  void deleteMessage(String messageId, String roomId) {
+    _socket?.emit('delete_message', {
+      'messageId': messageId,
+      'roomId': roomId,
+    });
+  }
+
+  void editMessage(String messageId, String roomId, String newContent, {String? iv, String? mac}) {
+    _socket?.emit('edit_message', {
+      'messageId': messageId,
+      'roomId': roomId,
+      'newContent': newContent,
+      'iv': iv,
+      'mac': mac,
+    });
+  }
+
+  void onMessageDeleted(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('message_deleted', (data) {
+      callback(Map<String, dynamic>.from(data));
+    });
+  }
+
+  void onMessageEdited(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('message_edited', (data) {
       callback(Map<String, dynamic>.from(data));
     });
   }

@@ -1,5 +1,5 @@
 /// Message types supported by the chat system.
-enum MessageType { text, image, audio, video }
+enum MessageType { text, image, audio, video, file }
 
 /// Delivery status of a message.
 enum MessageStatus { sent, delivered, read }
@@ -16,11 +16,13 @@ class Message {
   final DateTime timestamp;
   final MessageType type;
   final MessageStatus status;
-   final bool isDeleted;
+  final bool isDeleted;
+  final bool isEdited;
   final String? iv;
   final String? mac;
   final bool isEncrypted;
   final bool isGroup;
+  final String? replyTo;
 
   Message({
     required this.id,
@@ -31,11 +33,47 @@ class Message {
     this.type = MessageType.text,
     this.status = MessageStatus.sent,
     this.isDeleted = false,
+    this.isEdited = false,
     this.iv,
     this.mac,
     this.isEncrypted = false,
     this.isGroup = false,
+    this.replyTo,
   });
+
+  Message copyWith({
+    String? id,
+    String? roomId,
+    String? senderId,
+    String? content,
+    DateTime? timestamp,
+    MessageType? type,
+    MessageStatus? status,
+    bool? isDeleted,
+    bool? isEdited,
+    String? iv,
+    String? mac,
+    bool? isEncrypted,
+    bool? isGroup,
+    String? replyTo,
+  }) {
+    return Message(
+      id: id ?? this.id,
+      roomId: roomId ?? this.roomId,
+      senderId: senderId ?? this.senderId,
+      content: content ?? this.content,
+      timestamp: timestamp ?? this.timestamp,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      isDeleted: isDeleted ?? this.isDeleted,
+      isEdited: isEdited ?? this.isEdited,
+      iv: iv ?? this.iv,
+      mac: mac ?? this.mac,
+      isEncrypted: isEncrypted ?? this.isEncrypted,
+      isGroup: isGroup ?? this.isGroup,
+      replyTo: replyTo ?? this.replyTo,
+    );
+  }
 
   /// Create a Message from a JSON map (API or Socket response).
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -49,10 +87,13 @@ class Message {
           : (json['createdAt'] != null ? DateTime.parse(json['createdAt']).toLocal() : DateTime.now()),
       type: _parseMessageType(json['type']),
       status: _parseMessageStatus(json['status']),
+      isDeleted: json['isDeleted'] ?? false,
+      isEdited: json['isEdited'] ?? false,
       iv: json['iv'],
       mac: json['mac'],
       isEncrypted: json['isEncrypted'] ?? false,
       isGroup: json['isGroup'] ?? false,
+      replyTo: json['replyTo']?.toString(),
     );
   }
 
@@ -66,10 +107,13 @@ class Message {
       'timestamp': timestamp.toIso8601String(),
       'type': type.name,
       'status': status.name,
+      'isDeleted': isDeleted,
+      'isEdited': isEdited,
       'iv': iv,
       'mac': mac,
       'isEncrypted': isEncrypted,
       'isGroup': isGroup,
+      'replyTo': replyTo,
     };
   }
 
@@ -83,6 +127,8 @@ class Message {
         return MessageType.audio;
       case 'video':
         return MessageType.video;
+      case 'file':
+        return MessageType.file;
       default:
         return MessageType.text;
     }

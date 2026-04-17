@@ -43,13 +43,26 @@ const messageSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['text', 'image', 'audio', 'video'],
+    enum: ['text', 'image', 'audio', 'video', 'file'],
     default: 'text',
   },
   status: {
     type: String,
     enum: ['sent', 'delivered', 'read'],
     default: 'sent',
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
+  isEdited: {
+    type: Boolean,
+    default: false,
+  },
+  replyTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Message',
+    default: null,
   },
 }, {
   timestamps: true, // createdAt serves as the message timestamp

@@ -29,6 +29,8 @@ const UserStatus = require('./models/UserStatus');
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
 const groupRoutes = require('./routes/group');
+const uploadRoutes = require('./routes/upload');
+const path = require('path');
 
 // ─────────────────────────────────────────────
 // Express App Setup
@@ -47,6 +49,10 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// Server uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check endpoint
 app.get('/', (req, res) => {
@@ -120,7 +126,7 @@ io.on('connection', async (socket) => {
   // ─────────────────────────────────────────
   socket.on('send_message', async (data) => {
     try {
-      const { roomId, content, type = 'text', iv, mac, isEncrypted = false, isGroup = false } = data;
+      const { roomId, content, type = 'text', iv, mac, isEncrypted = false, isGroup = false, replyTo = null } = data;
 
       // 1. Save message to MongoDB
       const message = new Message({
@@ -133,6 +139,7 @@ io.on('connection', async (socket) => {
         mac,
         isEncrypted,
         isGroup,
+        replyTo,
       });
       await message.save();
 
@@ -149,6 +156,7 @@ io.on('connection', async (socket) => {
         mac: message.mac,
         isEncrypted: message.isEncrypted,
         isGroup: message.isGroup,
+        replyTo: message.replyTo ? message.replyTo.toString() : null,
       };
 
       // 3. Broadcast to all users in the room
@@ -158,6 +166,53 @@ io.on('connection', async (socket) => {
     } catch (err) {
       console.error('Send message error:', err.message);
       socket.emit('error_message', { error: 'Failed to send message.' });
+    }
+  });
+
+  // ─────────────────────────────────────────
+  // Event: delete_message
+  // ─────────────────────────────────────────
+  socket.on('delete_message', async (data) => {
+    try {
+      const { messageId, roomId } = data;
+      const message = await Message.findOne({ _id: messageId, senderId: userId });
+      if (message && !message.isDeleted) {
+        message.isDeleted = true;
+        message.content = 'This message was deleted';
+        message.isEncrypted = false;
+        await message.save();
+        io.to(roomId).emit('message_deleted', { messageId, roomId });
+      }
+    } catch (err) {
+      console.error('Delete message error:', err.message);
+    }
+  });
+
+  // ─────────────────────────────────────────
+  // Event: edit_message
+  // ─────────────────────────────────────────
+  socket.on('edit_message', async (data) => {
+    try {
+      const { messageId, roomId, newContent, iv, mac } = data;
+      const message = await Message.findOne({ _id: messageId, senderId: userId, isDeleted: false });
+      if (message) {
+        message.content = newContent;
+        message.isEdited = true;
+        if (iv) message.iv = iv;
+        if (mac) message.mac = mac;
+        await message.save();
+        
+        const updatePayload = {
+          messageId,
+          roomId,
+          newContent,
+          iv: message.iv,
+          mac: message.mac,
+        };
+        io.to(roomId).emit('message_edited', updatePayload);
+      }
+    } catch (err) {
+      console.error('Edit message error:', err.message);
     }
   });
 
