@@ -5,6 +5,7 @@ import '../../models/message_model.dart';
 import '../../utils/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'audio_player_widget.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -177,6 +178,8 @@ class MessageBubble extends StatelessWidget {
                       ],
                     ),
                   )
+                else if (message.type == MessageType.audio)
+                  AudioPlayerWidget(url: message.content, isMe: isMe)
                 else
                   Text(
                     message.content,

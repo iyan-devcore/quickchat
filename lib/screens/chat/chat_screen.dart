@@ -6,8 +6,13 @@ import '../../utils/app_colors.dart';
 import '../../widgets/message_bubble.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../utils/constants.dart';
 
 /// The main chat screen where real-time messaging happens.
@@ -47,6 +52,12 @@ class _ChatScreenState extends State<ChatScreen> {
   Message? _editingMessage;
   Message? _replyingMessage;
 
+  final _audioRecorder = AudioRecorder();
+  bool _isRecording = false;
+  String? _recordingPath;
+  Timer? _recordingTimer;
+  int _recordingSeconds = 0;
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +85,8 @@ class _ChatScreenState extends State<ChatScreen> {
       Provider.of<ChatProvider>(context, listen: false)
           .sendTyping(widget.chatId, false);
     }
+    _audioRecorder.dispose();
+    _recordingTimer?.cancel();
     super.dispose();
   }
 
@@ -161,7 +174,11 @@ class _ChatScreenState extends State<ChatScreen> {
               otherUserId: widget.otherUserId,
               isGroup: widget.isGroup,
               type: type,
+              replyTo: _replyingMessage?.id,
             );
+            setState(() {
+              _replyingMessage = null;
+            });
             
             _scrollToBottom();
           }
@@ -170,6 +187,78 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       print("Upload error: $e");
     }
+  }
+
+  Future<void> _startRecording() async {
+    final status = await Permission.microphone.request();
+    if (status.isGranted) {
+      final Directory tempDir = await getTemporaryDirectory();
+      _recordingPath = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await _audioRecorder.start(const RecordConfig(), path: _recordingPath!);
+      setState(() {
+        _isRecording = true;
+        _recordingSeconds = 0;
+      });
+      _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          _recordingSeconds++;
+        });
+      });
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Microphone permission required for audio messages')),
+        );
+      }
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    _recordingTimer?.cancel();
+    final path = await _audioRecorder.stop();
+    setState(() {
+      _isRecording = false;
+    });
+    if (path != null) {
+      _uploadAudio(path);
+    }
+  }
+
+  Future<void> _uploadAudio(String filePath) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse('${AppConstants.baseUrl}/api/upload'));
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.bytesToString();
+        var json = jsonDecode(responseData);
+        var url = json['url'];
+
+        if (mounted) {
+          Provider.of<ChatProvider>(context, listen: false).sendMessage(
+            widget.chatId,
+            url,
+            otherUserId: widget.otherUserId,
+            isGroup: widget.isGroup,
+            type: 'audio',
+            replyTo: _replyingMessage?.id,
+          );
+          setState(() {
+            _replyingMessage = null;
+          });
+          _scrollToBottom();
+        }
+      }
+    } catch (e) {
+      print("Audio upload error: $e");
+    }
+  }
+
+  String _formatDuration(int seconds) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(seconds ~/ 60);
+    String twoDigitSeconds = twoDigits(seconds % 60);
+    return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
   @override
@@ -435,46 +524,70 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: isDark ? AppColors.inputBackgroundDark : AppColors.inputBackgroundLight,
                 borderRadius: BorderRadius.circular(25),
               ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.emoji_emotions_outlined, color: AppColors.textGrey),
-                    onPressed: () {},
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
-                      decoration: const InputDecoration(
-                        hintText: 'Message',
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-                      ),
-                      onChanged: (val) {
-                        final wasTyping = _isTyping;
-                        final nowTyping = val.isNotEmpty;
+              child: _isRecording
+                  ? Row(
+                      children: [
+                        const SizedBox(width: 16),
+                        const Icon(Icons.mic, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Recording... ${_formatDuration(_recordingSeconds)}',
+                            style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: AppColors.textGrey),
+                          onPressed: () async {
+                            _recordingTimer?.cancel();
+                            await _audioRecorder.stop();
+                            setState(() {
+                              _isRecording = false;
+                            });
+                          },
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.emoji_emotions_outlined, color: AppColors.textGrey),
+                          onPressed: () {},
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _messageController,
+                            style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+                            decoration: const InputDecoration(
+                              hintText: 'Message',
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+                            ),
+                            onChanged: (val) {
+                              final wasTyping = _isTyping;
+                              final nowTyping = val.isNotEmpty;
 
-                        if (wasTyping != nowTyping) {
-                          setState(() => _isTyping = nowTyping);
-                          // Send typing indicator to the other user
-                          Provider.of<ChatProvider>(context, listen: false)
-                              .sendTyping(widget.chatId, nowTyping);
-                        }
-                      },
-                      onSubmitted: (_) => _sendMessage(),
+                              if (wasTyping != nowTyping) {
+                                setState(() => _isTyping = nowTyping);
+                                // Send typing indicator to the other user
+                                Provider.of<ChatProvider>(context, listen: false)
+                                    .sendTyping(widget.chatId, nowTyping);
+                              }
+                            },
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.attach_file, color: AppColors.textGrey),
+                          onPressed: () => _pickAndUploadFile('file'),
+                        ),
+                        if (!_isTyping)
+                          IconButton(
+                            icon: const Icon(Icons.camera_alt, color: AppColors.textGrey),
+                            onPressed: () => _pickAndUploadFile('image'),
+                          ),
+                      ],
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.attach_file, color: AppColors.textGrey),
-                    onPressed: () => _pickAndUploadFile('file'),
-                  ),
-                  if (!_isTyping)
-                    IconButton(
-                      icon: const Icon(Icons.camera_alt, color: AppColors.textGrey),
-                      onPressed: () => _pickAndUploadFile('image'),
-                    ),
-                ],
-              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -482,8 +595,10 @@ class _ChatScreenState extends State<ChatScreen> {
             backgroundColor: AppColors.primary,
             radius: 24,
             child: IconButton(
-              icon: Icon(_isTyping ? Icons.send : Icons.mic, color: Colors.white),
-              onPressed: _isTyping ? _sendMessage : () {},
+              icon: Icon(_isRecording ? Icons.stop : (_isTyping ? Icons.send : Icons.mic), color: Colors.white),
+              onPressed: _isRecording 
+                  ? _stopRecording 
+                  : (_isTyping ? _sendMessage : _startRecording),
             ),
           ),
         ],
