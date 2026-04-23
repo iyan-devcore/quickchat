@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../providers/user_provider.dart';
@@ -8,10 +9,6 @@ import 'create_group_screen.dart';
 import '../chat/chat_screen.dart';
 
 /// Screen for starting a new chat conversation.
-///
-/// Fetches registered users from the backend API.
-/// Tapping a contact generates a deterministic room ID and navigates
-/// to the ChatScreen, effectively creating (or resuming) a conversation.
 class NewChatScreen extends StatefulWidget {
   const NewChatScreen({super.key});
 
@@ -30,7 +27,6 @@ class _NewChatScreenState extends State<NewChatScreen> {
     _loadUsers();
   }
 
-  /// Fetch all registered users from the backend.
   Future<void> _loadUsers() async {
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
@@ -49,122 +45,127 @@ class _NewChatScreenState extends State<NewChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
+        backgroundColor: AppColors.backgroundLight,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          color: AppColors.snapBlack,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Select Contact'),
+            Text(
+              'New Chat',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 20, color: AppColors.snapBlack),
+            ),
             Text(
               _isLoading ? 'Loading...' : '${_users.length} contacts',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+              style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textGrey, fontWeight: FontWeight.w600),
             ),
           ],
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.snapBlack, strokeWidth: 2.5))
           : _error != null
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 48, color: AppColors.textGrey),
+                      const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.textGrey),
                       const SizedBox(height: 16),
-                      Text(_error!, style: const TextStyle(color: AppColors.textGrey)),
+                      Text(_error!, style: GoogleFonts.nunito(color: AppColors.textGrey, fontSize: 15)),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
-                          setState(() {
-                            _isLoading = true;
-                            _error = null;
-                          });
+                          setState(() { _isLoading = true; _error = null; });
                           _loadUsers();
                         },
-                        child: const Text('Retry'),
+                        child: Text('Retry', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                       ),
                     ],
                   ),
                 )
               : _users.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No other users registered yet.\nAsk a friend to sign up!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textGrey, fontSize: 16),
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 80, height: 80,
+                            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                            child: const Icon(Icons.people_rounded, size: 40, color: AppColors.snapBlack),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No contacts yet',
+                            style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.snapBlack),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Ask a friend to sign up!',
+                            style: GoogleFonts.nunito(color: AppColors.textGrey, fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                        ],
                       ),
                     )
                   : ListView(
                       children: [
-                        ListTile(
-                          leading: const CircleAvatar(
-                            backgroundColor: AppColors.primary,
-                            child: Icon(Icons.group, color: Colors.white),
+                        // New group
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            tileColor: AppColors.primary,
+                            leading: const Icon(Icons.group_rounded, color: AppColors.snapBlack, size: 26),
+                            title: Text('New Group', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.snapBlack)),
+                            subtitle: Text('Chat with multiple people', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.snapBlack.withOpacity(0.6))),
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CreateGroupScreen())),
                           ),
-                          title: const Text('New group', style: TextStyle(fontWeight: FontWeight.bold)),
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const CreateGroupScreen()),
-                            );
-                          },
                         ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
                           child: Text(
-                            'Contacts on QuickChat',
-                            style: TextStyle(
-                              color: AppColors.textGrey,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            'CONTACTS ON QUICKCHAT',
+                            style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textGrey, letterSpacing: 0.8),
                           ),
                         ),
+
                         ..._users.map((user) {
                           return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             leading: Stack(
                               children: [
                                 CircleAvatar(
+                                  radius: 26,
                                   backgroundImage: NetworkImage(user.avatarUrl),
+                                  backgroundColor: AppColors.surfaceVariant,
                                 ),
-                                // Online status indicator
                                 if (user.isOnline)
                                   Positioned(
-                                    bottom: 0,
-                                    right: 0,
+                                    bottom: 1, right: 1,
                                     child: Container(
-                                      width: 12,
-                                      height: 12,
+                                      width: 12, height: 12,
                                       decoration: BoxDecoration(
                                         color: AppColors.online,
                                         shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: isDark ? AppColors.backgroundDark : Colors.white,
-                                          width: 2,
-                                        ),
+                                        border: Border.all(color: Colors.white, width: 2),
                                       ),
                                     ),
                                   ),
                               ],
                             ),
-                            title: Text(
-                              user.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(user.about),
+                            title: Text(user.name, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.snapBlack)),
+                            subtitle: Text(user.about, style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textGrey)),
                             onTap: () {
-                              // Generate deterministic room ID
-                              final currentUser = Provider.of<UserProvider>(
-                                context,
-                                listen: false,
-                              ).currentUser;
+                              final currentUser = Provider.of<UserProvider>(context, listen: false).currentUser;
                               if (currentUser == null) return;
-
-                              final roomId = ChatProvider.generateRoomId(
-                                currentUser.id,
-                                user.id,
-                              );
-
+                              final roomId = ChatProvider.generateRoomId(currentUser.id, user.id);
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (_) => ChatScreen(

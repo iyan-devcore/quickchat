@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/chat_provider.dart';
@@ -20,27 +21,30 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+    _scaleAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
 
-    // Attempt auto-login after splash animation
     _checkAuth();
   }
 
   /// Check if the user has stored credentials and auto-login.
   Future<void> _checkAuth() async {
-    // Wait for the splash animation to play
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
@@ -51,7 +55,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (!mounted) return;
 
     if (isLoggedIn) {
-      // Initialize chat provider with authenticated services
       final chatProvider = Provider.of<ChatProvider>(context, listen: false);
       chatProvider.init(
         userProvider.apiService,
@@ -79,37 +82,60 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: AppColors.primary, // Snapchat yellow splash
       body: Center(
         child: FadeTransition(
-          opacity: _animation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.chat_bubble_outline_rounded,
-                size: 100,
-                color: AppColors.primary,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'QuickChat',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+          opacity: _fadeAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Snapchat-style ghost icon
+                Container(
+                  width: 110,
+                  height: 110,
+                  decoration: const BoxDecoration(
+                    color: Colors.transparent,
+                  ),
+                  child: Icon(
+                    Icons.chat_bubble_rounded,
+                    size: 100,
+                    color: AppColors.snapBlack,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.primary,
+                const SizedBox(height: 24),
+                Text(
+                  'QuickChat',
+                  style: GoogleFonts.nunito(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.snapBlack,
+                    letterSpacing: -0.5,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  'Talk. Snap. Connect.',
+                  style: GoogleFonts.nunito(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.snapBlack.withOpacity(0.6),
+                  ),
+                ),
+                const SizedBox(height: 60),
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.snapBlack.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

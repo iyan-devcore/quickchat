@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/custom_text_field.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -40,7 +41,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _aboutController.text,
     );
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated')),
+      SnackBar(
+        content: Text('Profile updated', style: GoogleFonts.nunito()),
+        backgroundColor: AppColors.snapBlack,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
@@ -50,109 +56,165 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) return const Scaffold(body: Center(child: Text('User not found')));
 
     return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('Profile'),
+        backgroundColor: AppColors.backgroundLight,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          color: AppColors.snapBlack,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'My Profile',
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 20, color: AppColors.snapBlack),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 20),
-            Center(
-              child: Stack(
+            // Yellow header with avatar
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
+              ),
+              child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 80,
-                    backgroundImage: NetworkImage(user.avatarUrl),
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 56,
+                        backgroundImage: NetworkImage(user.avatarUrl),
+                        backgroundColor: AppColors.surfaceVariant,
+                      ),
+                      Positioned(
+                        bottom: 0, right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.snapBlack,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.primary, width: 2),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 18),
+                            onPressed: () {},
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 4,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.camera_alt, color: Colors.white),
-                        onPressed: () {},
-                      ),
+                  const SizedBox(height: 12),
+                  Text(
+                    user.name,
+                    style: GoogleFonts.nunito(
+                      fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.snapBlack,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user.about,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13, color: AppColors.snapBlack.withOpacity(0.65), fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 30),
-            ListTile(
-              leading: const Icon(Icons.person, color: AppColors.textGrey),
-              title: const Text(
-                'Name',
-                style: TextStyle(fontSize: 14, color: AppColors.textGrey),
-              ),
-              subtitle: _isEditingName
-                  ? TextField(
-                      controller: _nameController,
-                      autofocus: true,
-                      onSubmitted: (_) {
-                        setState(() => _isEditingName = false);
-                        _saveProfile();
-                      },
-                    )
-                  : Text(
-                      user.name,
-                      style: const TextStyle(fontSize: 16),
+
+            const SizedBox(height: 24),
+
+            // Profile fields
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('NAME', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textGrey, letterSpacing: 0.8)),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _isEditingName
+                              ? TextField(
+                                  controller: _nameController,
+                                  autofocus: true,
+                                  style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.snapBlack),
+                                  decoration: const InputDecoration(border: InputBorder.none),
+                                  onSubmitted: (_) { setState(() => _isEditingName = false); _saveProfile(); },
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  child: Text(user.name, style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.snapBlack)),
+                                ),
+                        ),
+                        IconButton(
+                          icon: Icon(_isEditingName ? Icons.check_rounded : Icons.edit_rounded, color: AppColors.snapBlack, size: 20),
+                          onPressed: () {
+                            if (_isEditingName) _saveProfile();
+                            setState(() => _isEditingName = !_isEditingName);
+                          },
+                        ),
+                      ],
                     ),
-              trailing: IconButton(
-                icon: Icon(_isEditingName ? Icons.check : Icons.edit, color: AppColors.primary),
-                onPressed: () {
-                  if (_isEditingName) {
-                    _saveProfile();
-                  }
-                  setState(() => _isEditingName = !_isEditingName);
-                },
-              ),
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.info_outline, color: AppColors.textGrey),
-              title: const Text(
-                'About',
-                style: TextStyle(fontSize: 14, color: AppColors.textGrey),
-              ),
-              subtitle: _isEditingAbout
-                  ? TextField(
-                      controller: _aboutController,
-                      autofocus: true,
-                      onSubmitted: (_) {
-                        setState(() => _isEditingAbout = false);
-                        _saveProfile();
-                      },
-                    )
-                  : Text(
-                      user.about,
-                      style: const TextStyle(fontSize: 16),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Text('ABOUT', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textGrey, letterSpacing: 0.8)),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _isEditingAbout
+                              ? TextField(
+                                  controller: _aboutController,
+                                  autofocus: true,
+                                  style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.snapBlack),
+                                  decoration: const InputDecoration(border: InputBorder.none),
+                                  onSubmitted: (_) { setState(() => _isEditingAbout = false); _saveProfile(); },
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  child: Text(user.about, style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.snapBlack)),
+                                ),
+                        ),
+                        IconButton(
+                          icon: Icon(_isEditingAbout ? Icons.check_rounded : Icons.edit_rounded, color: AppColors.snapBlack, size: 20),
+                          onPressed: () {
+                            if (_isEditingAbout) _saveProfile();
+                            setState(() => _isEditingAbout = !_isEditingAbout);
+                          },
+                        ),
+                      ],
                     ),
-              trailing: IconButton(
-                icon: Icon(_isEditingAbout ? Icons.check : Icons.edit, color: AppColors.primary),
-                onPressed: () {
-                  if (_isEditingAbout) {
-                    _saveProfile();
-                  }
-                  setState(() => _isEditingAbout = !_isEditingAbout);
-                },
+                  ),
+
+                  const SizedBox(height: 16),
+                  Text('PHONE', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textGrey, letterSpacing: 0.8)),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Text('+1 123 456 7890', style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.snapBlack)),
+                  ),
+                ],
               ),
             ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.phone, color: AppColors.textGrey),
-              title: const Text(
-                'Phone',
-                style: TextStyle(fontSize: 14, color: AppColors.textGrey),
-              ),
-              subtitle: Text(
-                '+1 123 456 7890',
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

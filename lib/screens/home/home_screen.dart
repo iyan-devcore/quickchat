@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_colors.dart';
 import 'chats_list_screen.dart';
 import 'new_chat_screen.dart';
@@ -28,69 +29,87 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<String> _titles = [
-    'QuickChat',
-    'Updates',
+    'Chats',
+    'Stories',
     'Calls',
-    'Settings',
+    'Profile',
   ];
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
+        backgroundColor: AppColors.backgroundLight,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Text(
           _titles[_selectedIndex],
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w900,
+            fontSize: 24,
+            color: AppColors.snapBlack,
+            letterSpacing: -0.3,
+          ),
         ),
         actions: [
+          // Snapchat-style icon buttons — no background
           IconButton(
-            icon: const Icon(Icons.camera_alt_outlined),
+            icon: const Icon(Icons.search_rounded, size: 26),
+            color: AppColors.snapBlack,
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.camera_alt_rounded, size: 26),
+            color: AppColors.snapBlack,
             onPressed: () {},
           ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {},
-          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: _screens[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-        indicatorColor: isDark ? AppColors.secondary.withOpacity(0.2) : AppColors.secondary.withOpacity(0.2),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
-            label: 'Chats',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.update),
-            selectedIcon: Icon(Icons.update),
-            label: 'Updates',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.call_outlined),
-            selectedIcon: Icon(Icons.call),
-            label: 'Calls',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+      // Bottom nav — Snapchat style: white bar, yellow circle indicator
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.backgroundLight,
+          border: Border(top: BorderSide(color: AppColors.border, width: 0.8)),
+        ),
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          backgroundColor: Colors.transparent,
+          indicatorColor: AppColors.primary,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          elevation: 0,
+          height: 68,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.chat_bubble_outline_rounded),
+              selectedIcon: Icon(Icons.chat_bubble_rounded),
+              label: 'Chats',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.auto_stories_outlined),
+              selectedIcon: Icon(Icons.auto_stories_rounded),
+              label: 'Stories',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.call_outlined),
+              selectedIcon: Icon(Icons.call_rounded),
+              label: 'Calls',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
@@ -101,17 +120,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               },
-              child: const Icon(Icons.message),
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.snapBlack,
+              elevation: 2,
+              child: const Icon(Icons.edit_rounded, size: 24),
             )
           : _selectedIndex == 1
               ? FloatingActionButton(
                   onPressed: () {},
-                  child: const Icon(Icons.camera_alt),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.snapBlack,
+                  elevation: 2,
+                  child: const Icon(Icons.add_a_photo_rounded, size: 24),
                 )
               : _selectedIndex == 2
                   ? FloatingActionButton(
                       onPressed: () {},
-                      child: const Icon(Icons.add_call),
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.snapBlack,
+                      elevation: 2,
+                      child: const Icon(Icons.add_call, size: 24),
                     )
                   : null,
     );

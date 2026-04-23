@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/chat_provider.dart';
-import '../../models/message_model.dart';
-import '../../utils/app_colors.dart';
+import '../providers/chat_provider.dart';
+import '../models/message_model.dart';
+import '../utils/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'audio_player_widget.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -54,22 +55,35 @@ class MessageBubble extends StatelessWidget {
         ? chatProvider.getMessageById(message.roomId, message.replyTo!)
         : null;
 
+    // Snapchat bubble colors
+    final Color bubbleColor = message.isDeleted
+        ? Colors.grey.withOpacity(0.3)
+        : isMe
+            ? AppColors.myMessageBubble   // Yellow for sent
+            : AppColors.otherMessageBubble; // Grey for received
+
+    final Color textColor = isMe ? AppColors.snapBlack : AppColors.snapBlack;
+    final Color subtitleColor = isMe
+        ? AppColors.snapBlack.withOpacity(0.5)
+        : AppColors.textGrey;
+
     return GestureDetector(
       onLongPress: onLongPress,
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Column(
-          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment:
+              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             if (!isMe && senderName != null)
               Padding(
-                padding: const EdgeInsets.only(left: 12, bottom: 2),
+                padding: const EdgeInsets.only(left: 14, bottom: 2),
                 child: Text(
                   senderName!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.secondary,
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textGrey,
                   ),
                 ),
               ),
@@ -77,203 +91,231 @@ class MessageBubble extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-              decoration: BoxDecoration(
-                color: message.isDeleted 
-                    ? Colors.grey.withOpacity(0.5) 
-                    : (isMe ? AppColors.primary.withOpacity(0.9) : Theme.of(context).brightness == Brightness.dark ? AppColors.dividerDark : Colors.white),
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(12),
-                  topRight: const Radius.circular(12),
-                  bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(0),
-                  bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(12),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    offset: const Offset(0, 1),
-                    blurRadius: 2,
+                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.72,
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (repliedMessage != null)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border(
-                          left: BorderSide(
-                            color: isMe ? Colors.white : AppColors.primary,
-                            width: 3,
-                          ),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            chatProvider.getSenderName(repliedMessage.senderId) ?? 'User',
-                            style: TextStyle(
-                              color: isMe ? Colors.white : AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            repliedMessage.type == MessageType.text ? repliedMessage.content : 'Attachment',
-                            style: TextStyle(
-                              color: isMe ? Colors.white70 : Colors.black87,
-                              fontSize: 12,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                  decoration: BoxDecoration(
+                    color: bubbleColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(18),
+                      topRight: const Radius.circular(18),
+                      bottomLeft: isMe
+                          ? const Radius.circular(18)
+                          : const Radius.circular(4),
+                      bottomRight: isMe
+                          ? const Radius.circular(4)
+                          : const Radius.circular(18),
                     ),
-                if (message.type == MessageType.image)
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => Scaffold(
-                            backgroundColor: Colors.black,
-                            appBar: AppBar(
-                              backgroundColor: Colors.black,
-                              iconTheme: const IconThemeData(color: Colors.white),
-                            ),
-                            body: Center(
-                              child: InteractiveViewer(
-                                child: Image.network(message.content),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        offset: const Offset(0, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Reply preview
+                      if (repliedMessage != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border(
+                              left: BorderSide(
+                                color: isMe
+                                    ? AppColors.snapBlack.withOpacity(0.5)
+                                    : AppColors.textGrey,
+                                width: 3,
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        message.content,
-                        width: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                      ),
-                    ),
-                  )
-                else if (message.type == MessageType.file)
-                  GestureDetector(
-                    onTap: () async {
-                      final Uri uri = Uri.parse(extractedUrl);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri);
-                      }
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.insert_drive_file, color: isMe ? Colors.white : Colors.grey),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            displayFileName,
-                            style: TextStyle(
-                              color: isMe ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
-                              fontSize: 16,
-                              decoration: TextDecoration.underline,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                chatProvider.getSenderName(repliedMessage.senderId) ??
+                                    'User',
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.snapBlack.withOpacity(0.7),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                repliedMessage.type == MessageType.text
+                                    ? repliedMessage.content
+                                    : 'Attachment',
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.snapBlack.withOpacity(0.6),
+                                  fontSize: 12,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  )
-                else if (message.type == MessageType.audio)
-                  AudioPlayerWidget(url: message.content, isMe: isMe)
-                else
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      color: isMe ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
-                      fontSize: 16,
-                      fontStyle: message.isDeleted ? FontStyle.italic : FontStyle.normal,
+                      // Message content
+                      if (message.type == MessageType.image)
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => Scaffold(
+                                  backgroundColor: Colors.black,
+                                  appBar: AppBar(
+                                    backgroundColor: Colors.black,
+                                    iconTheme: const IconThemeData(color: Colors.white),
+                                  ),
+                                  body: Center(
+                                    child: InteractiveViewer(
+                                      child: Image.network(message.content),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              message.content,
+                              width: 200,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      else if (message.type == MessageType.file)
+                        GestureDetector(
+                          onTap: () async {
+                            final Uri uri = Uri.parse(extractedUrl);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.insert_drive_file_rounded,
+                                color: textColor.withOpacity(0.7),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  displayFileName,
+                                  style: GoogleFonts.nunito(
+                                    color: textColor,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else if (message.type == MessageType.audio)
+                        AudioPlayerWidget(url: message.content, isMe: isMe)
+                      else
+                        Text(
+                          message.content,
+                          style: GoogleFonts.nunito(
+                            color: message.isDeleted
+                                ? AppColors.textGrey
+                                : textColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            fontStyle: message.isDeleted
+                                ? FontStyle.italic
+                                : FontStyle.normal,
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                      // Timestamp + status
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (message.isEdited && !message.isDeleted) ...[
+                            Text(
+                              'edited',
+                              style: GoogleFonts.nunito(
+                                color: subtitleColor,
+                                fontSize: 10,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Text(
+                            DateFormat('hh:mm a').format(message.timestamp),
+                            style: GoogleFonts.nunito(
+                              color: subtitleColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (isMe) ...[
+                            const SizedBox(width: 4),
+                            Icon(
+                              message.status == MessageStatus.sent
+                                  ? Icons.done_rounded
+                                  : Icons.done_all_rounded,
+                              size: 14,
+                              color: message.status == MessageStatus.read
+                                  ? const Color(0xFF1A9EFF)
+                                  : subtitleColor,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Reactions bubble
+                if (message.reactions.isNotEmpty)
+                  Positioned(
+                    bottom: -8,
+                    right: isMe ? 18 : null,
+                    left: !isMe ? 18 : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: _buildReactionsWidgets(message.reactions),
+                      ),
                     ),
                   ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (message.isEdited && !message.isDeleted) ...[
-                      Text(
-                        '(edited)',
-                        style: TextStyle(
-                          color: isMe ? Colors.white70 : Colors.grey,
-                          fontSize: 10,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                    Text(
-                      DateFormat('hh:mm a').format(message.timestamp),
-                      style: TextStyle(
-                        color: isMe ? Colors.white70 : Colors.grey,
-                        fontSize: 10,
-                      ),
-                    ),
-                    if (isMe) ...[
-                      const SizedBox(width: 4),
-                      Icon(
-                        message.status == MessageStatus.sent 
-                          ? Icons.done 
-                          : Icons.done_all,
-                        size: 14,
-                        color: message.status == MessageStatus.read 
-                          ? Colors.lightBlueAccent 
-                          : Colors.grey,
-                      ),
-                    ],
-                  ],
-                ),
               ],
             ),
-          ),
-          if (message.reactions.isNotEmpty)
-            Positioned(
-              bottom: -6,
-              right: isMe ? 18 : null,
-              left: !isMe ? 18 : null,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: _buildReactionsWidgets(message.reactions),
-                ),
-              ),
-            ),
-        ],
+            if (message.reactions.isNotEmpty) const SizedBox(height: 10),
+          ],
+        ),
       ),
-      if (message.reactions.isNotEmpty)
-        const SizedBox(height: 8),
-      ],
-    ),
-  ),
-);
+    );
   }
 }

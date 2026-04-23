@@ -1,80 +1,103 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../utils/app_colors.dart';
 
-/// Status/Updates screen — shows user statuses.
-/// Currently uses placeholder data for the status list
-/// while the main user avatar comes from the authenticated user.
+/// Stories/Status screen — Snapchat light theme.
 class StatusScreen extends StatelessWidget {
   const StatusScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = Provider.of<UserProvider>(context).currentUser;
-    
+
     return ListView(
       children: [
-        ListTile(
-          leading: Stack(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundImage: user != null
-                    ? NetworkImage(user.avatarUrl)
-                    : null,
-                child: user == null ? const Icon(Icons.person) : null,
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                    border: Border.fromBorderSide(BorderSide(color: Colors.white, width: 2)),
-                  ),
-                  child: const Icon(Icons.add, size: 20, color: Colors.white),
-                ),
-              ),
-            ],
+        // My story
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Text(
+            'MY STORY',
+            style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textGrey, letterSpacing: 0.8),
           ),
-          title: const Text('My Status', style: TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: const Text('Tap to add status update'),
-          onTap: () {},
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'Recent updates',
-            style: TextStyle(
-              fontWeight: FontWeight.bold, 
-              color: isDark ? AppColors.textGrey : Colors.grey[600],
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: ListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            tileColor: AppColors.surfaceVariant,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            leading: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary, width: 2.5),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2.0),
+                    child: CircleAvatar(
+                      radius: 24,
+                      backgroundImage: user != null ? NetworkImage(user.avatarUrl) : null,
+                      backgroundColor: AppColors.surfaceVariant,
+                      child: user == null ? const Icon(Icons.person, color: AppColors.textGrey) : null,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                    child: const Icon(Icons.add_rounded, size: 16, color: AppColors.snapBlack),
+                  ),
+                ),
+              ],
             ),
+            title: Text('My Story', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.snapBlack)),
+            subtitle: Text('Tap to add a story update', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textGrey)),
+            onTap: () {},
           ),
         ),
-        // Placeholder statuses
-        ...List.generate(3, (index) {
-          return ListTile(
-            leading: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.secondary, width: 2),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=u${index + 2}'),
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Text(
+            'RECENT UPDATES',
+            style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textGrey, letterSpacing: 0.8),
+          ),
+        ),
+
+        ...List.generate(4, (index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+            child: ListTile(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: AppColors.surfaceVariant,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              leading: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 2.5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: CircleAvatar(
+                    radius: 22,
+                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=u${index + 2}'),
+                  ),
                 ),
               ),
+              title: Text('User ${index + 2}', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.snapBlack)),
+              subtitle: Text('Today, ${10 + index}:30 AM', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textGrey)),
+              onTap: () {},
             ),
-            title: Text('User ${index + 2}', style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text('Today, 10:${30 + index} AM'),
-            onTap: () {},
           );
         }),
+        const SizedBox(height: 16),
       ],
     );
   }
