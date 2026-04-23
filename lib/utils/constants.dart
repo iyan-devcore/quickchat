@@ -5,10 +5,10 @@
 /// For mobile emulators, use 10.0.2.2 (Android) or localhost (iOS).
 class AppConstants {
   /// Base URL for REST API calls
-  static const String baseUrl = 'http://localhost:5000';
+  static const String baseUrl = 'http://10.13.190.52:5000';
 
   /// Socket.io server URL (same as API server)
-  static const String socketUrl = 'http://localhost:5000';
+  static const String socketUrl = 'http://10.13.190.52:5000';
 
   /// SharedPreferences key for storing JWT token
   static const String tokenKey = 'auth_token';

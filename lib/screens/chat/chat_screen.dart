@@ -4,6 +4,7 @@ import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/message_bubble.dart';
+import '../../models/message_model.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -449,6 +450,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputArea(BuildContext context, bool isDark) {
+    final currentUser = Provider.of<UserProvider>(context, listen: false).currentUser;
     return Column(
       children: [
         if (_editingMessage != null)
@@ -603,6 +605,8 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
+    ),
+      ],
     );
   }
 

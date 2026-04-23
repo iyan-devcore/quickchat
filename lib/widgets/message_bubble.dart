@@ -271,9 +271,9 @@ class MessageBubble extends StatelessWidget {
       ),
       if (message.reactions.isNotEmpty)
         const SizedBox(height: 8),
-    ],
-        ],
-      ),
-    );
+      ],
+    ),
+  ),
+);
   }
 }

@@ -587,7 +587,7 @@ class ChatProvider with ChangeNotifier {
   Future<void> editMessage(String messageId, String roomId, String newContent, {String? otherUserId, bool isGroup = false}) async {
     if (_socketService == null || _encryptionService == null || newContent.trim().isEmpty) return;
 
-    String? finalContent = newContent.trim();
+    String finalContent = newContent.trim();
     String? iv;
     String? mac;
 
