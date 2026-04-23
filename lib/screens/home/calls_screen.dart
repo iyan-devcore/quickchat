@@ -7,47 +7,56 @@ class CallsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8, bottom: 100), // Spacing for floating navbar
       itemCount: 5,
-      separatorBuilder: (_, __) => const Divider(height: 1, indent: 76, color: AppColors.dividerLight),
       itemBuilder: (context, index) {
         final isOutgoing = index % 2 == 0;
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          leading: CircleAvatar(
-            radius: 26,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=u${index + 2}'),
-            backgroundColor: AppColors.surfaceVariant,
-          ),
-          title: Text(
-            'User ${index + 2}',
-            style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.snapBlack),
-          ),
-          subtitle: Row(
-            children: [
-              Icon(
-                isOutgoing ? Icons.call_made_rounded : Icons.call_received_rounded,
-                size: 14,
-                color: isOutgoing ? AppColors.online : Colors.red,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Today, 12:0${index} PM',
-                style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textGrey),
-              ),
-            ],
-          ),
-          trailing: Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-            child: Icon(
-              index % 3 == 0 ? Icons.videocam_rounded : Icons.call_rounded,
-              color: AppColors.snapBlack,
-              size: 20,
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: ListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            tileColor: AppColors.surfaceVariant,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: CircleAvatar(
+              radius: 26,
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=u${index + 2}'),
+              backgroundColor: AppColors.backgroundDark,
             ),
+            title: Text(
+              'User ${index + 2}',
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.textLight),
+            ),
+            subtitle: Row(
+              children: [
+                Icon(
+                  isOutgoing ? Icons.call_made_rounded : Icons.call_received_rounded,
+                  size: 14,
+                  color: isOutgoing ? Colors.greenAccent : Colors.redAccent,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Today, 12:0${index} PM',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textGrey),
+                ),
+              ],
+            ),
+            trailing: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.backgroundDark,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Icon(
+                index % 3 == 0 ? Icons.videocam_rounded : Icons.call_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+            ),
+            onTap: () {},
           ),
-          onTap: () {},
         );
       },
     );

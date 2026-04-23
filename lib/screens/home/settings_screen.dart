@@ -7,7 +7,6 @@ import '../../utils/app_colors.dart';
 import '../profile/profile_screen.dart';
 import '../auth/auth_screen.dart';
 
-/// Settings screen — Snapchat light theme.
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -26,8 +25,15 @@ class SettingsScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
                   borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -43,10 +49,10 @@ class SettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             user.name,
-                            style: GoogleFonts.nunito(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.snapBlack,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -54,10 +60,10 @@ class SettingsScreen extends StatelessWidget {
                             user.about,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.nunito(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 13,
-                              color: AppColors.snapBlack.withOpacity(0.65),
-                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withOpacity(0.8),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -66,10 +72,10 @@ class SettingsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.snapBlack.withOpacity(0.1),
+                        color: Colors.white.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.qr_code_rounded, color: AppColors.snapBlack, size: 20),
+                      child: const Icon(Icons.qr_code_rounded, color: Colors.white, size: 20),
                     ),
                   ],
                 ),
@@ -93,32 +99,32 @@ class SettingsScreen extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: ListTile(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            tileColor: Colors.red.shade50,
-            leading: const Icon(Icons.logout_rounded, color: Colors.red),
-            title: Text('Log Out', style: GoogleFonts.nunito(color: Colors.red, fontWeight: FontWeight.w700, fontSize: 15)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            tileColor: AppColors.surfaceVariant,
+            leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            title: Text('Log Out', style: GoogleFonts.plusJakartaSans(color: Colors.redAccent, fontWeight: FontWeight.w700, fontSize: 16)),
             onTap: () async {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
+                  backgroundColor: AppColors.surface,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  title: Text('Log Out', style: GoogleFonts.nunito(fontWeight: FontWeight.w800)),
-                  content: Text('Are you sure you want to log out?', style: GoogleFonts.nunito()),
+                  title: Text('Log Out', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: AppColors.textLight)),
+                  content: Text('Are you sure you want to log out?', style: GoogleFonts.plusJakartaSans(color: AppColors.textGrey)),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: Text('Cancel', style: GoogleFonts.nunito(color: AppColors.textGrey, fontWeight: FontWeight.w700)),
+                      child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textGrey, fontWeight: FontWeight.w600)),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: Colors.redAccent,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       ),
                       onPressed: () => Navigator.pop(context, true),
-                      child: Text('Log Out', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                      child: Text('Log Out', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ),
@@ -137,21 +143,21 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 100), // Spacing for floating navbar
       ],
     );
   }
 
   Widget _sectionLabel(String label) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Text(
         label.toUpperCase(),
-        style: GoogleFonts.nunito(
-          fontSize: 11,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
           fontWeight: FontWeight.w800,
           color: AppColors.textGrey,
-          letterSpacing: 0.8,
+          letterSpacing: 1.0,
         ),
       ),
     );
@@ -159,18 +165,22 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _snapTile(BuildContext context, {required IconData icon, required String label, required String? subtitle}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         tileColor: AppColors.surfaceVariant,
         leading: Container(
-          width: 38,
-          height: 38,
-          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-          child: Icon(icon, color: AppColors.snapBlack, size: 20),
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: AppColors.backgroundDark,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 20),
         ),
-        title: Text(label, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.snapBlack)),
-        subtitle: subtitle != null ? Text(subtitle, style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textGrey)) : null,
+        title: Text(label, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 16, color: AppColors.textLight)),
+        subtitle: subtitle != null ? Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textGrey)) : null,
         trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textGrey),
         onTap: () {},
       ),

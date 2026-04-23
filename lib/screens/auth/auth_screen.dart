@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -9,14 +10,6 @@ import '../../providers/chat_provider.dart';
 import '../home/home_screen.dart';
 import 'verify_email_screen.dart';
 
-/// Authentication screen with Login and Register tabs.
-///
-/// Wired to real backend API via [UserProvider]:
-/// - Login: validates credentials against MongoDB
-/// - Register: creates a new account with hashed password
-///
-/// On success: initializes ChatProvider and navigates to HomeScreen.
-/// On failure: displays error message via SnackBar.
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
@@ -24,8 +17,7 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
-    with SingleTickerProviderStateMixin {
+class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _loginEmailController = TextEditingController();
   final _loginPasswordController = TextEditingController();
@@ -50,7 +42,6 @@ class _AuthScreenState extends State<AuthScreen>
     super.dispose();
   }
 
-  /// Handle login: call API, show errors, navigate on success.
   void _handleLogin() async {
     final email = _loginEmailController.text.trim();
     final password = _loginPasswordController.text.trim();
@@ -68,9 +59,7 @@ class _AuthScreenState extends State<AuthScreen>
     if (success) {
       if (userProvider.isAwaitingVerification) {
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => VerifyEmailScreen(email: email, password: password),
-          ),
+          MaterialPageRoute(builder: (_) => VerifyEmailScreen(email: email, password: password)),
         );
         return;
       }
@@ -91,7 +80,6 @@ class _AuthScreenState extends State<AuthScreen>
     }
   }
 
-  /// Handle registration: call API, show errors, navigate on success.
   void _handleRegister() async {
     final name = _registerNameController.text.trim();
     final email = _registerEmailController.text.trim();
@@ -118,14 +106,15 @@ class _AuthScreenState extends State<AuthScreen>
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Text(
               'Verify Email',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: Colors.white),
             ),
             content: Text(
               'Registration successful! Please verify your email and then login to continue.',
-              style: GoogleFonts.nunito(),
+              style: GoogleFonts.plusJakartaSans(color: Colors.white70),
             ),
             actions: [
               TextButton(
@@ -136,8 +125,8 @@ class _AuthScreenState extends State<AuthScreen>
                 },
                 child: Text(
                   'OK',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.snapBlack,
+                  style: GoogleFonts.plusJakartaSans(
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -167,8 +156,8 @@ class _AuthScreenState extends State<AuthScreen>
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: GoogleFonts.nunito()),
-        backgroundColor: AppColors.snapBlack,
+        content: Text(message, style: GoogleFonts.plusJakartaSans()),
+        backgroundColor: AppColors.surfaceVariant,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -178,95 +167,155 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 56),
-                // Snapchat-style yellow logo circle
-                Container(
-                  width: 96,
-                  height: 96,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.chat_bubble_rounded,
-                    size: 48,
-                    color: AppColors.snapBlack,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'QuickChat',
-                  style: GoogleFonts.nunito(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.snapBlack,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Talk fast. Chat smarter.',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    color: AppColors.textGrey,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // Tab bar — Snapchat pill style
-                Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: AppColors.primary,
-                    ),
-                    labelColor: AppColors.snapBlack,
-                    unselectedLabelColor: AppColors.textGrey,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerColor: Colors.transparent,
-                    labelStyle: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
-                    unselectedLabelStyle: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                    tabs: const [
-                      Tab(text: 'Log In'),
-                      Tab(text: 'Sign Up'),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  height: 320,
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildLoginForm(),
-                      _buildRegisterForm(),
-                    ],
-                  ),
-                ),
-              ],
+      backgroundColor: AppColors.backgroundDark,
+      body: Stack(
+        children: [
+          // Background Gradient Orbs
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withOpacity(0.15),
+                boxShadow: [
+                  BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 100, spreadRadius: 50)
+                ],
+              ),
             ),
           ),
-        ),
+          Positioned(
+            bottom: -50,
+            left: -100,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.secondary.withOpacity(0.15),
+                boxShadow: [
+                  BoxShadow(color: AppColors.secondary.withOpacity(0.2), blurRadius: 100, spreadRadius: 50)
+                ],
+              ),
+            ),
+          ),
+          
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primary, AppColors.secondary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+                          ]
+                        ),
+                        child: const Icon(
+                          Icons.chat_bubble_rounded,
+                          size: 40,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        'Nexus',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Secure. Fast. Connected.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 15,
+                          color: AppColors.textGrey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface.withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: Colors.white.withOpacity(0.05)),
+                            ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  height: 54,
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.backgroundDark.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: TabBar(
+                                    controller: _tabController,
+                                    indicator: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      gradient: const LinearGradient(
+                                        colors: [AppColors.primary, AppColors.secondary],
+                                      ),
+                                    ),
+                                    labelColor: Colors.white,
+                                    unselectedLabelColor: AppColors.textGrey,
+                                    indicatorSize: TabBarIndicatorSize.tab,
+                                    dividerColor: Colors.transparent,
+                                    labelStyle: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                    tabs: const [
+                                      Tab(text: 'Log In'),
+                                      Tab(text: 'Sign Up'),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+                                SizedBox(
+                                  height: 320,
+                                  child: TabBarView(
+                                    controller: _tabController,
+                                    children: [
+                                      _buildLoginForm(),
+                                      _buildRegisterForm(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -282,7 +331,7 @@ class _AuthScreenState extends State<AuthScreen>
               keyboardType: TextInputType.emailAddress,
               prefixIcon: Icons.email_outlined,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             CustomTextField(
               controller: _loginPasswordController,
               hintText: 'Password',
@@ -296,10 +345,10 @@ class _AuthScreenState extends State<AuthScreen>
                 onPressed: () {},
                 child: Text(
                   'Forgot password?',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.textGrey,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
+                  style: GoogleFonts.plusJakartaSans(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -326,21 +375,21 @@ class _AuthScreenState extends State<AuthScreen>
               hintText: 'Full Name',
               prefixIcon: Icons.person_outline_rounded,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             CustomTextField(
               controller: _registerEmailController,
               hintText: 'Email address',
               keyboardType: TextInputType.emailAddress,
               prefixIcon: Icons.email_outlined,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             CustomTextField(
               controller: _registerPasswordController,
               hintText: 'Password',
               obscureText: true,
               prefixIcon: Icons.lock_outline_rounded,
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 32),
             PrimaryButton(
               text: 'Create Account',
               isLoading: userProvider.isLoading,

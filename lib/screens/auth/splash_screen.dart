@@ -82,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary, // Snapchat yellow splash
+      backgroundColor: AppColors.backgroundDark, 
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -91,46 +91,55 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Snapchat-style ghost icon
                 Container(
-                  width: 110,
-                  height: 110,
-                  decoration: const BoxDecoration(
-                    color: Colors.transparent,
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    Icons.chat_bubble_rounded,
-                    size: 100,
-                    color: AppColors.snapBlack,
+                  child: const Center(
+                    child: Icon(
+                      Icons.chat_bubble_rounded,
+                      size: 60,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 Text(
                   'QuickChat',
-                  style: GoogleFonts.nunito(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.snapBlack,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
-                  'Talk. Snap. Connect.',
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.snapBlack.withOpacity(0.6),
+                  'Talk. Connect. Build.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.7),
                   ),
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 80),
                 SizedBox(
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
+                    strokeWidth: 3,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.snapBlack.withOpacity(0.5),
+                      AppColors.primary,
                     ),
                   ),
                 ),

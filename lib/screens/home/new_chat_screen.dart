@@ -8,7 +8,6 @@ import '../../utils/app_colors.dart';
 import 'create_group_screen.dart';
 import '../chat/chat_screen.dart';
 
-/// Screen for starting a new chat conversation.
 class NewChatScreen extends StatefulWidget {
   const NewChatScreen({super.key});
 
@@ -46,13 +45,13 @@ class _NewChatScreenState extends State<NewChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundLight,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          color: AppColors.snapBlack,
+          color: AppColors.textLight,
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
@@ -60,17 +59,17 @@ class _NewChatScreenState extends State<NewChatScreen> {
           children: [
             Text(
               'New Chat',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 20, color: AppColors.snapBlack),
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 20, color: AppColors.textLight),
             ),
             Text(
               _isLoading ? 'Loading...' : '${_users.length} contacts',
-              style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textGrey, fontWeight: FontWeight.w600),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textGrey, fontWeight: FontWeight.w500),
             ),
           ],
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.snapBlack, strokeWidth: 2.5))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3))
           : _error != null
               ? Center(
                   child: Column(
@@ -78,14 +77,18 @@ class _NewChatScreenState extends State<NewChatScreen> {
                     children: [
                       const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.textGrey),
                       const SizedBox(height: 16),
-                      Text(_error!, style: GoogleFonts.nunito(color: AppColors.textGrey, fontSize: 15)),
+                      Text(_error!, style: GoogleFonts.plusJakartaSans(color: AppColors.textGrey, fontSize: 16)),
                       const SizedBox(height: 16),
                       ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
                         onPressed: () {
                           setState(() { _isLoading = true; _error = null; });
                           _loadUsers();
                         },
-                        child: Text('Retry', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                        child: Text('Retry', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, color: Colors.white)),
                       ),
                     ],
                   ),
@@ -97,18 +100,22 @@ class _NewChatScreenState extends State<NewChatScreen> {
                         children: [
                           Container(
                             width: 80, height: 80,
-                            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                            child: const Icon(Icons.people_rounded, size: 40, color: AppColors.snapBlack),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+                              shape: BoxShape.circle,
+                              boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 15)],
+                            ),
+                            child: const Icon(Icons.people_rounded, size: 40, color: Colors.white),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           Text(
                             'No contacts yet',
-                            style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.snapBlack),
+                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 20, color: AppColors.textLight),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Ask a friend to sign up!',
-                            style: GoogleFonts.nunito(color: AppColors.textGrey, fontSize: 14, fontWeight: FontWeight.w500),
+                            style: GoogleFonts.plusJakartaSans(color: AppColors.textGrey, fontSize: 15, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -117,28 +124,36 @@ class _NewChatScreenState extends State<NewChatScreen> {
                       children: [
                         // New group
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                           child: ListTile(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            tileColor: AppColors.primary,
-                            leading: const Icon(Icons.group_rounded, color: AppColors.snapBlack, size: 26),
-                            title: Text('New Group', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.snapBlack)),
-                            subtitle: Text('Chat with multiple people', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.snapBlack.withOpacity(0.6))),
+                            tileColor: AppColors.surfaceVariant,
+                            leading: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+                              ),
+                              child: const Icon(Icons.group_add_rounded, color: Colors.white, size: 24),
+                            ),
+                            title: Text('New Group', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.textLight)),
+                            subtitle: Text('Chat with multiple people', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textGrey)),
                             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CreateGroupScreen())),
                           ),
                         ),
 
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
+                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
                           child: Text(
                             'CONTACTS ON QUICKCHAT',
-                            style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textGrey, letterSpacing: 0.8),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textGrey, letterSpacing: 1.0),
                           ),
                         ),
 
                         ..._users.map((user) {
                           return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                             leading: Stack(
                               children: [
                                 CircleAvatar(
@@ -148,20 +163,20 @@ class _NewChatScreenState extends State<NewChatScreen> {
                                 ),
                                 if (user.isOnline)
                                   Positioned(
-                                    bottom: 1, right: 1,
+                                    bottom: 0, right: 0,
                                     child: Container(
-                                      width: 12, height: 12,
+                                      width: 14, height: 14,
                                       decoration: BoxDecoration(
                                         color: AppColors.online,
                                         shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white, width: 2),
+                                        border: Border.all(color: AppColors.backgroundDark, width: 2.5),
                                       ),
                                     ),
                                   ),
                               ],
                             ),
-                            title: Text(user.name, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.snapBlack)),
-                            subtitle: Text(user.about, style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textGrey)),
+                            title: Text(user.name, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.textLight)),
+                            subtitle: Text(user.about, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textGrey)),
                             onTap: () {
                               final currentUser = Provider.of<UserProvider>(context, listen: false).currentUser;
                               if (currentUser == null) return;
@@ -179,6 +194,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
                             },
                           );
                         }),
+                        const SizedBox(height: 32),
                       ],
                     ),
     );

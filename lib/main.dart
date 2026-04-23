@@ -31,10 +31,10 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'QuickChat',
         debugShowCheckedModeBanner: false,
-        // Force light theme only — Snapchat style
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.lightTheme,
-        themeMode: ThemeMode.light,
+        // Force dark theme for the new aesthetic
+        theme: AppTheme.darkTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.dark,
         home: const SplashScreen(),
       ),
     );

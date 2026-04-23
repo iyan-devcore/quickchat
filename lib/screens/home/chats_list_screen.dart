@@ -6,13 +6,6 @@ import '../../utils/app_colors.dart';
 import '../../widgets/chat_tile.dart';
 import '../chat/chat_screen.dart';
 
-/// Displays the list of conversations for the current user.
-///
-/// Conversations are loaded from the backend via [ChatProvider].
-/// Each tile shows the other user's name, avatar, last message,
-/// timestamp, unread count, and online status indicator.
-///
-/// Pull-to-refresh reloads conversations from the API.
 class ChatsListScreen extends StatelessWidget {
   const ChatsListScreen({super.key});
 
@@ -20,50 +13,49 @@ class ChatsListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
-        // Show loading indicator on first load
         if (chatProvider.isLoading && chatProvider.chats.isEmpty) {
           return const Center(
             child: CircularProgressIndicator(
-              color: AppColors.snapBlack,
+              color: AppColors.primary,
               strokeWidth: 2.5,
             ),
           );
         }
 
-        // Show empty state if no conversations
         if (chatProvider.chats.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 90,
-                  height: 90,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceVariant,
                     shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: const Icon(
                     Icons.chat_bubble_outline_rounded,
-                    size: 44,
-                    color: AppColors.snapBlack,
+                    size: 40,
+                    color: AppColors.textGrey,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 Text(
-                  'No chats yet',
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
+                  'No Messages Yet',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.snapBlack,
+                    color: AppColors.textLight,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Start a conversation by tapping the\nedit button below',
+                  'Start a conversation by tapping the\nnew chat button below',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
                     color: AppColors.textGrey,
                     fontWeight: FontWeight.w500,
                   ),
@@ -73,18 +65,18 @@ class ChatsListScreen extends StatelessWidget {
           );
         }
 
-        // Show conversation list with pull-to-refresh
         return RefreshIndicator(
-          color: AppColors.snapBlack,
-          backgroundColor: AppColors.primary,
+          color: AppColors.primary,
+          backgroundColor: AppColors.surface,
           onRefresh: () => chatProvider.loadConversations(),
           child: ListView.separated(
+            padding: const EdgeInsets.only(bottom: 100), // padding for the floating nav bar
             itemCount: chatProvider.chats.length,
             separatorBuilder: (context, index) => const Divider(
               height: 1,
-              indent: 80,
+              indent: 84,
               endIndent: 0,
-              color: AppColors.dividerLight,
+              color: AppColors.dividerDark,
             ),
             itemBuilder: (context, index) {
               final chat = chatProvider.chats[index];
@@ -107,45 +99,45 @@ class ChatsListScreen extends StatelessWidget {
                 onLongPress: () {
                   showModalBottomSheet(
                     context: context,
-                    backgroundColor: AppColors.backgroundLight,
+                    backgroundColor: AppColors.surface,
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                     ),
                     builder: (context) => Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 36,
-                            height: 4,
-                            margin: const EdgeInsets.only(bottom: 12),
+                            width: 40,
+                            height: 5,
+                            margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
                               color: AppColors.border,
-                              borderRadius: BorderRadius.circular(2),
+                              borderRadius: BorderRadius.circular(3),
                             ),
                           ),
                           ListTile(
-                            leading: const Icon(Icons.push_pin_outlined, color: AppColors.snapBlack),
+                            leading: const Icon(Icons.push_pin_outlined, color: AppColors.textLight),
                             title: Text(
                               chat.isPinned ? 'Unpin chat' : 'Pin chat',
-                              style: GoogleFonts.nunito(fontWeight: FontWeight.w600),
+                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: AppColors.textLight),
                             ),
                             onTap: () => Navigator.pop(context),
                           ),
                           ListTile(
-                            leading: const Icon(Icons.volume_off_outlined, color: AppColors.snapBlack),
+                            leading: const Icon(Icons.volume_off_outlined, color: AppColors.textLight),
                             title: Text(
                               'Mute notifications',
-                              style: GoogleFonts.nunito(fontWeight: FontWeight.w600),
+                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: AppColors.textLight),
                             ),
                             onTap: () => Navigator.pop(context),
                           ),
                           ListTile(
-                            leading: const Icon(Icons.archive_outlined, color: AppColors.snapBlack),
+                            leading: const Icon(Icons.archive_outlined, color: AppColors.textLight),
                             title: Text(
                               'Archive chat',
-                              style: GoogleFonts.nunito(fontWeight: FontWeight.w600),
+                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: AppColors.textLight),
                             ),
                             onTap: () => Navigator.pop(context),
                           ),
@@ -153,7 +145,7 @@ class ChatsListScreen extends StatelessWidget {
                             leading: const Icon(Icons.delete_outline_rounded, color: AppColors.red),
                             title: Text(
                               'Delete chat',
-                              style: GoogleFonts.nunito(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.red,
                               ),

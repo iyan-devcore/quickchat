@@ -281,6 +281,90 @@ io.on('connection', async (socket) => {
   });
 
   // ─────────────────────────────────────────
+  // WebRTC Signaling Events for Calling
+  // ─────────────────────────────────────────
+
+  // 1. Initiate Call
+  socket.on('call_user', async (data) => {
+    try {
+      const { userToCall, signalData, callerName, isVideo } = data;
+      // Find callee's socket
+      const userStatus = await UserStatus.findOne({ userId: userToCall });
+      if (userStatus && userStatus.isOnline && userStatus.socketId) {
+        io.to(userStatus.socketId).emit('incoming_call', {
+          from: userId,
+          callerName,
+          signal: signalData,
+          isVideo,
+        });
+      } else {
+        socket.emit('call_failed', { reason: 'User is offline' });
+      }
+    } catch (err) {
+      console.error('Call user error:', err.message);
+    }
+  });
+
+  // 2. Answer Call
+  socket.on('answer_call', async (data) => {
+    try {
+      const { to, signal } = data; // 'to' is caller's userId
+      const userStatus = await UserStatus.findOne({ userId: to });
+      if (userStatus && userStatus.isOnline && userStatus.socketId) {
+        io.to(userStatus.socketId).emit('call_answered', {
+          signal,
+          from: userId,
+        });
+      }
+    } catch (err) {
+      console.error('Answer call error:', err.message);
+    }
+  });
+
+  // 3. ICE Candidate Exchange
+  socket.on('ice_candidate', async (data) => {
+    try {
+      const { to, candidate } = data;
+      const userStatus = await UserStatus.findOne({ userId: to });
+      if (userStatus && userStatus.isOnline && userStatus.socketId) {
+        io.to(userStatus.socketId).emit('ice_candidate', {
+          candidate,
+          from: userId,
+        });
+      }
+    } catch (err) {
+      console.error('ICE candidate error:', err.message);
+    }
+  });
+
+  // 4. End Call
+  socket.on('end_call', async (data) => {
+    try {
+      const { to } = data;
+      const userStatus = await UserStatus.findOne({ userId: to });
+      if (userStatus && userStatus.isOnline && userStatus.socketId) {
+        io.to(userStatus.socketId).emit('call_ended', { from: userId });
+      }
+    } catch (err) {
+      console.error('End call error:', err.message);
+    }
+  });
+
+  // 5. Reject Call
+  socket.on('reject_call', async (data) => {
+    try {
+      const { to } = data;
+      const userStatus = await UserStatus.findOne({ userId: to });
+      if (userStatus && userStatus.isOnline && userStatus.socketId) {
+        io.to(userStatus.socketId).emit('call_rejected', { from: userId });
+      }
+    } catch (err) {
+      console.error('Reject call error:', err.message);
+    }
+  });
+
+
+  // ─────────────────────────────────────────
   // Event: disconnect
   // Mark user offline and broadcast status change
   // ─────────────────────────────────────────

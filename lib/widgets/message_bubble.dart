@@ -55,16 +55,9 @@ class MessageBubble extends StatelessWidget {
         ? chatProvider.getMessageById(message.roomId, message.replyTo!)
         : null;
 
-    // Snapchat bubble colors
-    final Color bubbleColor = message.isDeleted
-        ? Colors.grey.withOpacity(0.3)
-        : isMe
-            ? AppColors.myMessageBubble   // Yellow for sent
-            : AppColors.otherMessageBubble; // Grey for received
-
-    final Color textColor = isMe ? AppColors.snapBlack : AppColors.snapBlack;
+    final Color textColor = Colors.white;
     final Color subtitleColor = isMe
-        ? AppColors.snapBlack.withOpacity(0.5)
+        ? Colors.white70
         : AppColors.textGrey;
 
     return GestureDetector(
@@ -77,13 +70,13 @@ class MessageBubble extends StatelessWidget {
           children: [
             if (!isMe && senderName != null)
               Padding(
-                padding: const EdgeInsets.only(left: 14, bottom: 2),
+                padding: const EdgeInsets.only(left: 14, bottom: 4),
                 child: Text(
                   senderName!,
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textGrey,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -91,29 +84,33 @@ class MessageBubble extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.72,
+                    maxWidth: MediaQuery.of(context).size.width * 0.75,
                   ),
                   decoration: BoxDecoration(
-                    color: bubbleColor,
+                    gradient: isMe && !message.isDeleted
+                        ? LinearGradient(
+                            colors: [AppColors.primary, AppColors.secondary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: !isMe && !message.isDeleted ? AppColors.surfaceVariant : (message.isDeleted ? AppColors.border : null),
                     borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(18),
-                      topRight: const Radius.circular(18),
-                      bottomLeft: isMe
-                          ? const Radius.circular(18)
-                          : const Radius.circular(4),
-                      bottomRight: isMe
-                          ? const Radius.circular(4)
-                          : const Radius.circular(18),
+                      topLeft: const Radius.circular(20),
+                      topRight: const Radius.circular(20),
+                      bottomLeft: isMe ? const Radius.circular(20) : const Radius.circular(6),
+                      bottomRight: isMe ? const Radius.circular(6) : const Radius.circular(20),
                     ),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        offset: const Offset(0, 2),
-                        blurRadius: 4,
-                      ),
+                      if (isMe && !message.isDeleted)
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          offset: const Offset(0, 4),
+                          blurRadius: 10,
+                        ),
                     ],
                   ),
                   child: Column(
@@ -123,16 +120,14 @@ class MessageBubble extends StatelessWidget {
                       if (repliedMessage != null)
                         Container(
                           margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.black26,
+                            borderRadius: BorderRadius.circular(12),
                             border: Border(
                               left: BorderSide(
-                                color: isMe
-                                    ? AppColors.snapBlack.withOpacity(0.5)
-                                    : AppColors.textGrey,
-                                width: 3,
+                                color: isMe ? Colors.white54 : AppColors.primary,
+                                width: 4,
                               ),
                             ),
                           ),
@@ -140,22 +135,21 @@ class MessageBubble extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                chatProvider.getSenderName(repliedMessage.senderId) ??
-                                    'User',
-                                style: GoogleFonts.nunito(
-                                  color: AppColors.snapBlack.withOpacity(0.7),
+                                chatProvider.getSenderName(repliedMessage.senderId) ?? 'User',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: isMe ? Colors.white : AppColors.primary,
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 11,
+                                  fontSize: 12,
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 4),
                               Text(
                                 repliedMessage.type == MessageType.text
                                     ? repliedMessage.content
                                     : 'Attachment',
-                                style: GoogleFonts.nunito(
-                                  color: AppColors.snapBlack.withOpacity(0.6),
-                                  fontSize: 12,
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white70,
+                                  fontSize: 13,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -186,10 +180,10 @@ class MessageBubble extends StatelessWidget {
                             );
                           },
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                             child: Image.network(
                               message.content,
-                              width: 200,
+                              width: 220,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   const Icon(Icons.broken_image, size: 50, color: Colors.grey),
@@ -209,14 +203,14 @@ class MessageBubble extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.insert_drive_file_rounded,
-                                color: textColor.withOpacity(0.7),
-                                size: 20,
+                                color: textColor.withOpacity(0.8),
+                                size: 24,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 10),
                               Flexible(
                                 child: Text(
                                   displayFileName,
-                                  style: GoogleFonts.nunito(
+                                  style: GoogleFonts.plusJakartaSans(
                                     color: textColor,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -232,18 +226,14 @@ class MessageBubble extends StatelessWidget {
                       else
                         Text(
                           message.content,
-                          style: GoogleFonts.nunito(
-                            color: message.isDeleted
-                                ? AppColors.textGrey
-                                : textColor,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: message.isDeleted ? AppColors.textGrey : textColor,
                             fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            fontStyle: message.isDeleted
-                                ? FontStyle.italic
-                                : FontStyle.normal,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: message.isDeleted ? FontStyle.italic : FontStyle.normal,
                           ),
                         ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       // Timestamp + status
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -251,7 +241,7 @@ class MessageBubble extends StatelessWidget {
                           if (message.isEdited && !message.isDeleted) ...[
                             Text(
                               'edited',
-                              style: GoogleFonts.nunito(
+                              style: GoogleFonts.plusJakartaSans(
                                 color: subtitleColor,
                                 fontSize: 10,
                                 fontStyle: FontStyle.italic,
@@ -261,21 +251,21 @@ class MessageBubble extends StatelessWidget {
                           ],
                           Text(
                             DateFormat('hh:mm a').format(message.timestamp),
-                            style: GoogleFonts.nunito(
+                            style: GoogleFonts.plusJakartaSans(
                               color: subtitleColor,
-                              fontSize: 10,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           if (isMe) ...[
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Icon(
                               message.status == MessageStatus.sent
                                   ? Icons.done_rounded
                                   : Icons.done_all_rounded,
-                              size: 14,
+                              size: 15,
                               color: message.status == MessageStatus.read
-                                  ? const Color(0xFF1A9EFF)
+                                  ? Colors.blueAccent
                                   : subtitleColor,
                             ),
                           ],
@@ -287,19 +277,19 @@ class MessageBubble extends StatelessWidget {
                 // Reactions bubble
                 if (message.reactions.isNotEmpty)
                   Positioned(
-                    bottom: -8,
-                    right: isMe ? 18 : null,
-                    left: !isMe ? 18 : null,
+                    bottom: -6,
+                    right: isMe ? 20 : null,
+                    left: !isMe ? 20 : null,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppColors.border),
                         boxShadow: const [
                           BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 4,
+                            color: Colors.black26,
+                            blurRadius: 6,
                             offset: Offset(0, 2),
                           ),
                         ],
@@ -312,7 +302,7 @@ class MessageBubble extends StatelessWidget {
                   ),
               ],
             ),
-            if (message.reactions.isNotEmpty) const SizedBox(height: 10),
+            if (message.reactions.isNotEmpty) const SizedBox(height: 12),
           ],
         ),
       ),

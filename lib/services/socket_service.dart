@@ -193,6 +193,61 @@ class SocketService {
     });
   }
 
+  // ─────────────────────────────────────────
+  // WebRTC Calling Signaling
+  // ─────────────────────────────────────────
+
+  void callUser(String userToCall, Map<String, dynamic> signalData, String callerName, bool isVideo) {
+    _socket?.emit('call_user', {
+      'userToCall': userToCall,
+      'signalData': signalData,
+      'callerName': callerName,
+      'isVideo': isVideo,
+    });
+  }
+
+  void answerCall(String to, Map<String, dynamic> signalData) {
+    _socket?.emit('answer_call', {
+      'to': to,
+      'signal': signalData,
+    });
+  }
+
+  void sendIceCandidate(String to, Map<String, dynamic> candidate) {
+    _socket?.emit('ice_candidate', {
+      'to': to,
+      'candidate': candidate,
+    });
+  }
+
+  void endCall(String to) {
+    _socket?.emit('end_call', {'to': to});
+  }
+
+  void rejectCall(String to) {
+    _socket?.emit('reject_call', {'to': to});
+  }
+
+  void onIncomingCall(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('incoming_call', (data) => callback(Map<String, dynamic>.from(data)));
+  }
+
+  void onCallAnswered(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('call_answered', (data) => callback(Map<String, dynamic>.from(data)));
+  }
+
+  void onIceCandidate(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('ice_candidate', (data) => callback(Map<String, dynamic>.from(data)));
+  }
+
+  void onCallEnded(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('call_ended', (data) => callback(Map<String, dynamic>.from(data)));
+  }
+
+  void onCallRejected(Function(Map<String, dynamic> data) callback) {
+    _socket?.on('call_rejected', (data) => callback(Map<String, dynamic>.from(data)));
+  }
+
   /// Remove all event listeners (call before setting up new ones).
   void clearListeners() {
     _socket?.clearListeners();

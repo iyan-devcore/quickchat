@@ -22,28 +22,29 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.inputBackground,
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
       ),
       child: TextField(
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        style: GoogleFonts.nunito(
-          color: AppColors.snapBlack,
+        style: GoogleFonts.plusJakartaSans(
+          color: Colors.white,
           fontSize: 15,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: hintText,
-          hintStyle: GoogleFonts.nunito(
+          hintStyle: GoogleFonts.plusJakartaSans(
             color: AppColors.textGrey,
             fontSize: 15,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
           ),
           prefixIcon: prefixIcon != null
-              ? Icon(prefixIcon, color: AppColors.textGrey, size: 20)
+              ? Icon(prefixIcon, color: AppColors.primary, size: 22)
               : null,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,

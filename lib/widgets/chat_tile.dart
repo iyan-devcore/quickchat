@@ -4,10 +4,6 @@ import '../models/chat_model.dart';
 import '../utils/app_colors.dart';
 import 'package:intl/intl.dart';
 
-/// A single conversation tile in the chat list.
-///
-/// Displays: avatar (with online dot), name, last message preview,
-/// timestamp, unread badge, and pin indicator.
 class ChatTile extends StatelessWidget {
   final Chat chat;
   final VoidCallback onTap;
@@ -31,18 +27,24 @@ class ChatTile extends StatelessWidget {
       splashColor: AppColors.primary.withOpacity(0.1),
       highlightColor: AppColors.primary.withOpacity(0.05),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Row(
           children: [
-            // Avatar with online indicator
             Stack(
               children: [
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
+                    boxShadow: hasUnread ? [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.4),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      )
+                    ] : [],
                     border: Border.all(
                       color: hasUnread ? AppColors.primary : Colors.transparent,
-                      width: hasUnread ? 2.5 : 0,
+                      width: hasUnread ? 2 : 0,
                     ),
                   ),
                   child: CircleAvatar(
@@ -56,19 +58,18 @@ class ChatTile extends StatelessWidget {
                     bottom: 2,
                     right: 2,
                     child: Container(
-                      width: 13,
-                      height: 13,
+                      width: 14,
+                      height: 14,
                       decoration: BoxDecoration(
                         color: AppColors.online,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: AppColors.backgroundLight, width: 2),
                       ),
                     ),
                   ),
               ],
             ),
-            const SizedBox(width: 12),
-            // Name and message preview
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,10 +79,10 @@ class ChatTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           chat.name,
-                          style: GoogleFonts.nunito(
+                          style: GoogleFonts.plusJakartaSans(
                             fontWeight: hasUnread ? FontWeight.w800 : FontWeight.w700,
-                            fontSize: 15,
-                            color: AppColors.snapBlack,
+                            fontSize: 16,
+                            color: AppColors.textLight,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -89,15 +90,15 @@ class ChatTile extends StatelessWidget {
                       if (chat.lastMessage != null)
                         Text(
                           _formatTimestamp(chat.lastMessage!.timestamp),
-                          style: GoogleFonts.nunito(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w500,
-                            color: hasUnread ? AppColors.snapBlack : AppColors.textGrey,
+                            color: hasUnread ? AppColors.textLight : AppColors.textGrey,
                           ),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Expanded(
@@ -105,8 +106,8 @@ class ChatTile extends StatelessWidget {
                           chat.lastMessage?.content ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
                             fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
                             color: hasUnread ? AppColors.textSecondary : AppColors.textGrey,
                           ),
@@ -123,19 +124,19 @@ class ChatTile extends StatelessWidget {
                         ),
                       if (hasUnread)
                         Container(
-                          margin: const EdgeInsets.only(left: 6),
+                          margin: const EdgeInsets.only(left: 8),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 3,
+                            horizontal: 8,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(10),
+                            color: AppColors.unreadBadge,
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             chat.unreadCount.toString(),
-                            style: GoogleFonts.nunito(
-                              color: AppColors.snapBlack,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
                             ),
@@ -152,7 +153,6 @@ class ChatTile extends StatelessWidget {
     );
   }
 
-  /// Format timestamp for display: "HH:mm" for today, "Yesterday", or date.
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final diff = now.difference(timestamp);

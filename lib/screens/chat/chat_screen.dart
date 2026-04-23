@@ -16,6 +16,7 @@ import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../utils/constants.dart';
+import 'call_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -157,8 +158,8 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Microphone permission required', style: GoogleFonts.nunito())),
-        );
+        SnackBar(content: Text('Microphone permission required', style: GoogleFonts.plusJakartaSans(color: Colors.white))),
+      );
       }
     }
   }
@@ -210,16 +211,16 @@ class _ChatScreenState extends State<ChatScreen> {
         if (messages.isNotEmpty) _scrollToBottom();
 
         return Scaffold(
-          backgroundColor: AppColors.chatBackgroundLight,
+          backgroundColor: AppColors.chatBackgroundDark,
           appBar: AppBar(
-            backgroundColor: AppColors.backgroundLight,
+            backgroundColor: AppColors.backgroundDark,
             elevation: 0,
-            scrolledUnderElevation: 0.5,
+            scrolledUnderElevation: 0,
             automaticallyImplyLeading: false,
             titleSpacing: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              color: AppColors.snapBlack,
+              color: AppColors.textLight,
               onPressed: () {
                 chatProvider.loadConversations();
                 Navigator.of(context).pop();
@@ -242,23 +243,23 @@ class _ChatScreenState extends State<ChatScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.online,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(color: AppColors.backgroundDark, width: 2),
                           ),
                         ),
                       ),
                   ],
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         widget.chatName,
-                        style: GoogleFonts.nunito(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.snapBlack,
+                          color: AppColors.textLight,
                         ),
                       ),
                       Builder(builder: (context) {
@@ -278,10 +279,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         }
                         return Text(
                           subtitle(),
-                          style: GoogleFonts.nunito(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: typingUserId != null ? AppColors.snapBlack : AppColors.textGrey,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: typingUserId != null ? AppColors.primary : AppColors.textGrey,
                           ),
                         );
                       }),
@@ -291,16 +292,43 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
             actions: [
-              IconButton(icon: const Icon(Icons.videocam_rounded, size: 24), color: AppColors.snapBlack, onPressed: () {}),
-              IconButton(icon: const Icon(Icons.call_rounded, size: 22), color: AppColors.snapBlack, onPressed: () {}),
+              IconButton(
+                icon: const Icon(Icons.videocam_rounded, size: 24),
+                color: AppColors.textLight,
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => CallScreen(
+                      callerId: currentUser!.id,
+                      callerName: currentUser.name,
+                      receiverId: widget.otherUserId,
+                      isVideo: true,
+                    ),
+                  ));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.call_rounded, size: 22),
+                color: AppColors.textLight,
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => CallScreen(
+                      callerId: currentUser!.id,
+                      callerName: currentUser.name,
+                      receiverId: widget.otherUserId,
+                      isVideo: false,
+                    ),
+                  ));
+                },
+              ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded, color: AppColors.snapBlack),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                icon: const Icon(Icons.more_vert_rounded, color: AppColors.textLight),
+                color: AppColors.surface,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 onSelected: (_) {},
                 itemBuilder: (_) => [
-                  PopupMenuItem(value: 'search', child: Text('Search', style: GoogleFonts.nunito())),
-                  PopupMenuItem(value: 'mute', child: Text('Mute notifications', style: GoogleFonts.nunito())),
-                  PopupMenuItem(value: 'wallpaper', child: Text('Wallpaper', style: GoogleFonts.nunito())),
+                  PopupMenuItem(value: 'search', child: Text('Search', style: GoogleFonts.plusJakartaSans(color: Colors.white))),
+                  PopupMenuItem(value: 'mute', child: Text('Mute notifications', style: GoogleFonts.plusJakartaSans(color: Colors.white))),
+                  PopupMenuItem(value: 'wallpaper', child: Text('Wallpaper', style: GoogleFonts.plusJakartaSans(color: Colors.white))),
                 ],
               ),
             ],
@@ -314,22 +342,26 @@ class _ChatScreenState extends State<ChatScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              width: 72,
-                              height: 72,
-                              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                              child: const Icon(Icons.waving_hand_rounded, size: 36, color: AppColors.snapBlack),
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+                                shape: BoxShape.circle,
+                                boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20)],
+                              ),
+                              child: const Icon(Icons.waving_hand_rounded, size: 36, color: Colors.white),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 24),
                             Text(
                               'Say hi to ${widget.chatName}! 👋',
-                              style: GoogleFonts.nunito(color: AppColors.textGrey, fontSize: 15, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.plusJakartaSans(color: AppColors.textLight, fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
                       )
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                         itemCount: messages.length,
                         itemBuilder: (context, index) {
                           final message = messages[index];
@@ -345,7 +377,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             background: Container(
                               alignment: Alignment.centerLeft,
                               padding: const EdgeInsets.only(left: 20),
-                              child: const Icon(Icons.reply_rounded, color: AppColors.textGrey),
+                              child: const Icon(Icons.reply_rounded, color: AppColors.primary),
                             ),
                             child: MessageBubble(
                               message: message,
@@ -370,20 +402,26 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildInputArea(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context, listen: false).currentUser;
     return Container(
-      color: AppColors.backgroundLight,
+      color: AppColors.backgroundDark,
+      padding: const EdgeInsets.only(bottom: 12, top: 8),
       child: Column(
         children: [
           if (_editingMessage != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: AppColors.primary.withOpacity(0.15),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              ),
               child: Row(
                 children: [
-                  const Icon(Icons.edit_rounded, size: 16, color: AppColors.snapBlack),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text('Editing message', style: GoogleFonts.nunito(color: AppColors.snapBlack, fontWeight: FontWeight.w600))),
+                  const Icon(Icons.edit_rounded, size: 18, color: AppColors.primary),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('Editing message', style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w600))),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 16),
+                    icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white70),
                     onPressed: () => setState(() { _editingMessage = null; _messageController.clear(); }),
                   ),
                 ],
@@ -391,59 +429,65 @@ class _ChatScreenState extends State<ChatScreen> {
             )
           else if (_replyingMessage != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: AppColors.primary.withOpacity(0.15),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              ),
               child: Row(
                 children: [
-                  const Icon(Icons.reply_rounded, size: 16, color: AppColors.snapBlack),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.reply_rounded, size: 18, color: AppColors.primary),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           _replyingMessage!.senderId == currentUser?.id ? 'Replying to yourself' : 'Replying',
-                          style: GoogleFonts.nunito(color: AppColors.snapBlack, fontWeight: FontWeight.w700, fontSize: 12),
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12),
                         ),
                         Text(
                           _replyingMessage!.type == MessageType.text ? _replyingMessage!.content : 'Attachment',
-                          style: GoogleFonts.nunito(color: AppColors.textGrey, fontSize: 13),
+                          style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 13),
                           maxLines: 1, overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 16),
+                    icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white70),
                     onPressed: () => setState(() => _replyingMessage = null),
                   ),
                 ],
               ),
             ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.inputBackground,
-                      borderRadius: BorderRadius.circular(26),
+                      color: AppColors.inputBackgroundDark,
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: _isRecording
                         ? Row(
                             children: [
-                              const SizedBox(width: 16),
-                              const Icon(Icons.mic_rounded, color: Colors.red, size: 20),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 20),
+                              const Icon(Icons.mic_rounded, color: Colors.redAccent, size: 20),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   'Recording... ${_formatDuration(_recordingSeconds)}',
-                                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppColors.snapBlack),
+                                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: Colors.redAccent),
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete_rounded, color: AppColors.textGrey, size: 20),
+                                icon: const Icon(Icons.delete_rounded, color: AppColors.textGrey, size: 22),
                                 onPressed: () async {
                                   _recordingTimer?.cancel();
                                   await _audioRecorder.stop();
@@ -455,19 +499,21 @@ class _ChatScreenState extends State<ChatScreen> {
                         : Row(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.emoji_emotions_outlined, size: 22),
+                                icon: const Icon(Icons.emoji_emotions_outlined, size: 24),
                                 color: AppColors.textGrey,
                                 onPressed: () {},
                               ),
                               Expanded(
                                 child: TextField(
                                   controller: _messageController,
-                                  style: GoogleFonts.nunito(color: AppColors.snapBlack, fontSize: 15, fontWeight: FontWeight.w600),
+                                  style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
                                   decoration: InputDecoration(
                                     hintText: 'Message...',
-                                    hintStyle: GoogleFonts.nunito(color: AppColors.textGrey, fontSize: 15),
+                                    hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textGrey, fontSize: 15),
                                     border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
                                   ),
                                   onChanged: (val) {
                                     final nowTyping = val.isNotEmpty;
@@ -498,13 +544,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 GestureDetector(
                   onTap: _isRecording ? _stopRecording : (_isTyping ? _sendMessage : _startRecording),
                   child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))
+                      ],
+                    ),
                     child: Icon(
                       _isRecording ? Icons.stop_rounded : (_isTyping ? Icons.send_rounded : Icons.mic_rounded),
-                      color: AppColors.snapBlack,
-                      size: 22,
+                      color: Colors.white,
+                      size: 24,
                     ),
                   ),
                 ),
@@ -520,17 +572,17 @@ class _ChatScreenState extends State<ChatScreen> {
     final List<String> emojis = ['❤️', '😂', '👍', '😮', '😢', '👏'];
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.backgroundLight,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) {
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 36, height: 4,
-                margin: const EdgeInsets.only(top: 12, bottom: 16),
-                decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+                width: 40, height: 5,
+                margin: const EdgeInsets.only(top: 12, bottom: 20),
+                decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(3)),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -541,15 +593,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       chatProvider.toggleReaction(message.roomId, message.id, emoji);
                       Navigator.pop(context);
                     },
-                    child: Text(emoji, style: const TextStyle(fontSize: 30)),
+                    child: Text(emoji, style: const TextStyle(fontSize: 32)),
                   )).toList(),
                 ),
               ),
-              if (isMe) const Divider(height: 1),
+              const SizedBox(height: 12),
+              if (isMe) const Divider(height: 1, color: AppColors.dividerDark),
               if (isMe && message.type == MessageType.text)
                 ListTile(
-                  leading: const Icon(Icons.edit_rounded, color: Colors.blue),
-                  title: Text('Edit message', style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+                  leading: const Icon(Icons.edit_rounded, color: AppColors.primary),
+                  title: Text('Edit message', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: Colors.white)),
                   onTap: () {
                     Navigator.pop(context);
                     setState(() {
@@ -562,13 +615,14 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               if (isMe)
                 ListTile(
-                  leading: const Icon(Icons.delete_rounded, color: Colors.red),
-                  title: Text('Delete for everyone', style: GoogleFonts.nunito(fontWeight: FontWeight.w600, color: Colors.red)),
+                  leading: const Icon(Icons.delete_rounded, color: Colors.redAccent),
+                  title: Text('Delete for everyone', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: Colors.redAccent)),
                   onTap: () {
                     Navigator.pop(context);
                     chatProvider.deleteMessage(message.id, message.roomId);
                   },
                 ),
+              const SizedBox(height: 12),
             ],
           ),
         );
