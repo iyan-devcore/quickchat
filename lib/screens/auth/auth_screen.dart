@@ -7,6 +7,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/chat_provider.dart';
+import '../../providers/call_provider.dart';
 import '../home/home_screen.dart';
 import 'verify_email_screen.dart';
 
@@ -71,6 +72,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         userProvider.encryptionService,
         userProvider.currentUser!.id,
       );
+      final callProvider = Provider.of<CallProvider>(context, listen: false);
+      callProvider.init(userProvider.apiService, userProvider.currentUser!.id);
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -144,6 +147,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         userProvider.encryptionService,
         userProvider.currentUser!.id,
       );
+      final callProvider = Provider.of<CallProvider>(context, listen: false);
+      callProvider.init(userProvider.apiService, userProvider.currentUser!.id);
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),

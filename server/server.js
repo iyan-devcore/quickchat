@@ -24,12 +24,14 @@ const { Server } = require('socket.io');
 // Import models
 const Message = require('./models/Message');
 const UserStatus = require('./models/UserStatus');
+const CallLog = require('./models/CallLog');
 
 // Import routes
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
 const groupRoutes = require('./routes/group');
 const uploadRoutes = require('./routes/upload');
+const callRoutes = require('./routes/calls');
 const path = require('path');
 
 // ─────────────────────────────────────────────
@@ -50,6 +52,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/calls', callRoutes);
 
 // Server uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

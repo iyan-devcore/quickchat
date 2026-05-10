@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/chat_provider.dart';
+import '../../providers/call_provider.dart';
 import '../../utils/app_colors.dart';
 import '../home/home_screen.dart';
 import '../../widgets/primary_button.dart';
@@ -38,6 +39,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         userProvider.encryptionService,
         userProvider.currentUser!.id,
       );
+      final callProvider = Provider.of<CallProvider>(context, listen: false);
+      callProvider.init(userProvider.apiService, userProvider.currentUser!.id);
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/chat_provider.dart';
+import '../../providers/call_provider.dart';
 import '../../utils/app_colors.dart';
 import 'auth_screen.dart';
 import '../home/home_screen.dart';
@@ -62,6 +63,8 @@ class _SplashScreenState extends State<SplashScreen>
         userProvider.encryptionService,
         userProvider.currentUser!.id,
       );
+      final callProvider = Provider.of<CallProvider>(context, listen: false);
+      callProvider.init(userProvider.apiService, userProvider.currentUser!.id);
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),

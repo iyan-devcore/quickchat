@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/chat_provider.dart';
+import 'providers/call_provider.dart';
 import 'utils/app_theme.dart';
 import 'screens/auth/splash_screen.dart';
 
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => CallProvider()),
       ],
       child: MaterialApp(
         title: 'QuickChat',

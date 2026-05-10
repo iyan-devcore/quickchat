@@ -7,7 +7,6 @@ import '../../services/socket_service.dart';
 import '../../utils/app_colors.dart';
 import 'chats_list_screen.dart';
 import 'new_chat_screen.dart';
-import 'status_screen.dart';
 import 'calls_screen.dart';
 import 'settings_screen.dart';
 import '../chat/call_screen.dart';
@@ -44,14 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const ChatsListScreen(),
-    const StatusScreen(),
     const CallsScreen(),
     const SettingsScreen(),
   ];
 
   final List<String> _titles = [
     'Messages',
-    'Moments',
     'Calls',
     'Profile',
   ];
@@ -132,9 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildNavItem(0, Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded),
-                  _buildNavItem(1, Icons.auto_stories_outlined, Icons.auto_stories_rounded),
-                  _buildNavItem(2, Icons.call_outlined, Icons.call_rounded),
-                  _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded),
+                  _buildNavItem(1, Icons.call_outlined, Icons.call_rounded),
+                  _buildNavItem(2, Icons.person_outline_rounded, Icons.person_rounded),
                 ],
               ),
             ),
@@ -170,8 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget? _buildFab() {
     IconData? icon;
     if (_selectedIndex == 0) icon = Icons.edit_rounded;
-    if (_selectedIndex == 1) icon = Icons.add_a_photo_rounded;
-    if (_selectedIndex == 2) icon = Icons.add_call;
+    if (_selectedIndex == 1) icon = Icons.add_call;
 
     if (icon == null) return null;
 

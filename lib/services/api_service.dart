@@ -195,4 +195,32 @@ class ApiService {
       throw Exception('Failed to fetch groups');
     }
   }
+
+  // ─────────────────────────────────────────
+  // Call History Endpoints
+  // ─────────────────────────────────────────
+
+  /// Fetch the last 50 call logs for the current user (newest first).
+  Future<List<Map<String, dynamic>>> getCalls() async {
+    final response = await http.get(
+      Uri.parse('${AppConstants.baseUrl}/api/calls'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to fetch call logs');
+    }
+  }
+
+  /// Save a call log entry after a call ends.
+  Future<void> saveCall(Map<String, dynamic> callData) async {
+    await http.post(
+      Uri.parse('${AppConstants.baseUrl}/api/calls'),
+      headers: _headers,
+      body: jsonEncode(callData),
+    );
+  }
 }

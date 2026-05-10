@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../models/call_model.dart';
+import '../../providers/call_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../services/socket_service.dart';
 import '../../utils/app_colors.dart';
 
@@ -39,13 +43,16 @@ class _CallScreenState extends State<CallScreen> {
   bool _isMuted = false;
   bool _isVideoOff = false;
   bool _isCallAnswered = false;
+  DateTime? _callStartedAt;
+  DateTime? _callAnsweredAt; // used to compute duration
 
   @override
   void initState() {
     super.initState();
+    _callStartedAt = DateTime.now();
     _initRenderers();
     _setupSocketListeners();
-    
+
     if (widget.isIncoming) {
       // Just wait for user to answer
     } else {
@@ -62,8 +69,11 @@ class _CallScreenState extends State<CallScreen> {
   void _setupSocketListeners() {
     _socketService.onCallAnswered((data) async {
       if (!mounted) return;
-      setState(() => _isCallAnswered = true);
-      
+      setState(() {
+        _isCallAnswered = true;
+        _callAnsweredAt = DateTime.now();
+      });
+
       final signal = data['signal'];
       final sessionDescription = RTCSessionDescription(
         signal['sdp'],
@@ -88,6 +98,7 @@ class _CallScreenState extends State<CallScreen> {
 
     _socketService.onCallRejected((data) {
       if (mounted) {
+        _saveCallLog(CallStatus.rejected, duration: 0);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Call declined')),
         );
@@ -181,11 +192,19 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   void _rejectCall() {
+    _saveCallLog(CallStatus.rejected, duration: 0);
     _socketService.rejectCall(widget.callerId);
     Navigator.of(context).pop();
   }
 
   void _endCall() {
+    final duration = _callAnsweredAt != null
+        ? DateTime.now().difference(_callAnsweredAt!).inSeconds
+        : 0;
+    _saveCallLog(
+      _isCallAnswered ? CallStatus.answered : CallStatus.missed,
+      duration: duration,
+    );
     final targetId = widget.isIncoming ? widget.callerId : widget.receiverId;
     _socketService.endCall(targetId);
     _endCallLocally();
@@ -228,6 +247,33 @@ class _CallScreenState extends State<CallScreen> {
     _localRenderer.dispose();
     _remoteRenderer.dispose();
     super.dispose();
+  }
+
+  /// Persist a call log to the backend via CallProvider.
+  void _saveCallLog(CallStatus status, {int duration = 0}) {
+    try {
+      final callProvider = context.read<CallProvider>();
+      final currentUser = context.read<UserProvider>().currentUser;
+      if (currentUser == null) return;
+
+      // Determine the other party
+      final isOutgoing = !widget.isIncoming;
+      final receiverId = isOutgoing ? widget.receiverId : widget.callerId;
+      final receiverName = isOutgoing ? widget.callerName : widget.callerName;
+
+      callProvider.saveCall(
+        receiverId:   receiverId,
+        receiverName: isOutgoing ? widget.callerName : currentUser.name,
+        callerName:   isOutgoing ? currentUser.name : widget.callerName,
+        isVideo:      widget.isVideo,
+        status:       status,
+        startedAt:    _callStartedAt ?? DateTime.now(),
+        endedAt:      DateTime.now(),
+        duration:     duration,
+      );
+    } catch (e) {
+      print('Failed to save call log: $e');
+    }
   }
 
   @override
