@@ -13,6 +13,7 @@ class MessageBubble extends StatelessWidget {
   final bool isMe;
   final String? senderName;
   final VoidCallback? onLongPress;
+  final Color? bubbleColor; // optional override for outgoing bubble colour
 
   const MessageBubble({
     super.key,
@@ -20,6 +21,7 @@ class MessageBubble extends StatelessWidget {
     required this.isMe,
     this.senderName,
     this.onLongPress,
+    this.bubbleColor,
   });
 
   List<Widget> _buildReactionsWidgets(Map<String, String> reactions) {
@@ -90,14 +92,16 @@ class MessageBubble extends StatelessWidget {
                     maxWidth: MediaQuery.of(context).size.width * 0.75,
                   ),
                   decoration: BoxDecoration(
-                    gradient: isMe && !message.isDeleted
-                        ? LinearGradient(
+                    gradient: isMe && !message.isDeleted && bubbleColor == null
+                        ? const LinearGradient(
                             colors: [AppColors.primary, AppColors.secondary],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           )
                         : null,
-                    color: !isMe && !message.isDeleted ? AppColors.surfaceVariant : (message.isDeleted ? AppColors.border : null),
+                    color: isMe && !message.isDeleted && bubbleColor != null
+                        ? bubbleColor
+                        : (!isMe && !message.isDeleted ? AppColors.surfaceVariant : (message.isDeleted ? AppColors.border : null)),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
@@ -107,7 +111,7 @@ class MessageBubble extends StatelessWidget {
                     boxShadow: [
                       if (isMe && !message.isDeleted)
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
+                          color: (bubbleColor ?? AppColors.primary).withOpacity(0.3),
                           offset: const Offset(0, 4),
                           blurRadius: 10,
                         ),

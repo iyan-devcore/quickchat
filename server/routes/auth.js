@@ -131,7 +131,7 @@ router.post('/login', async (req, res) => {
 
 /**
  * POST /api/auth/public-key
- * 
+ *
  * Update user's public key for E2E encryption.
  */
 router.post('/public-key', authMiddleware, async (req, res) => {
@@ -146,6 +146,42 @@ router.post('/public-key', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Update public key error:', err.message);
     res.status(500).json({ error: 'Failed to update public key.' });
+  }
+});
+
+/**
+ * PATCH /api/auth/profile
+ *
+ * Update name, about, and/or avatarUrl for the authenticated user.
+ * Body: { name?, about?, avatarUrl? }
+ */
+router.patch('/profile', authMiddleware, async (req, res) => {
+  try {
+    const { name, about, avatarUrl } = req.body;
+    const updates = {};
+    if (name)      updates.name      = name;
+    if (about !== undefined) updates.about = about;
+    if (avatarUrl) updates.avatarUrl = avatarUrl;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      updates,
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      about: user.about,
+      publicKey: user.publicKey || '',
+    });
+  } catch (err) {
+    console.error('Update profile error:', err.message);
+    res.status(500).json({ error: 'Failed to update profile.' });
   }
 });
 

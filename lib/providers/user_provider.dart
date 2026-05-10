@@ -244,12 +244,27 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update the user's profile (name, about).
-  void updateProfile(String name, String about) {
+  /// Update the user's profile (name, about, and optionally avatarUrl).
+  Future<void> updateProfile(String name, String about, {String? avatarUrl}) async {
     if (_currentUser != null) {
-      _currentUser = _currentUser!.copyWith(name: name, about: about);
-      _saveCredentials(); // Persist updated user data
+      _currentUser = _currentUser!.copyWith(
+        name: name,
+        about: about,
+        avatarUrl: avatarUrl ?? _currentUser!.avatarUrl,
+      );
+      await _saveCredentials(); // Persist updated user data
       notifyListeners();
+
+      // Sync with backend (fire & forget — ignore failures silently)
+      try {
+        await _apiService.updateProfile(
+          name: name,
+          about: about,
+          avatarUrl: avatarUrl,
+        );
+      } catch (e) {
+        print('Profile sync error: $e');
+      }
     }
   }
 

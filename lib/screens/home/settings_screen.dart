@@ -5,6 +5,7 @@ import '../../providers/user_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../utils/app_colors.dart';
 import '../profile/profile_screen.dart';
+import '../settings/chat_customization_screen.dart';
 import '../auth/auth_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -86,7 +87,8 @@ class SettingsScreen extends StatelessWidget {
         _sectionLabel('Account'),
         _snapTile(context, icon: Icons.key_rounded, label: 'Account', subtitle: 'Security, change number'),
         _snapTile(context, icon: Icons.lock_rounded, label: 'Privacy', subtitle: 'Block contacts, messages'),
-        _snapTile(context, icon: Icons.chat_bubble_rounded, label: 'Chats', subtitle: 'Wallpapers, chat history'),
+        _snapTile(context, icon: Icons.chat_bubble_rounded, label: 'Chats', subtitle: 'Wallpapers, bubble color',
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChatCustomizationScreen()))),
         _snapTile(context, icon: Icons.notifications_rounded, label: 'Notifications', subtitle: 'Message & call tones'),
         _snapTile(context, icon: Icons.data_usage_rounded, label: 'Storage & Data', subtitle: 'Network, auto-download'),
 
@@ -163,7 +165,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _snapTile(BuildContext context, {required IconData icon, required String label, required String? subtitle}) {
+  Widget _snapTile(BuildContext context, {required IconData icon, required String label, required String? subtitle, VoidCallback? onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
@@ -182,7 +184,7 @@ class SettingsScreen extends StatelessWidget {
         title: Text(label, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 16, color: AppColors.textLight)),
         subtitle: subtitle != null ? Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textGrey)) : null,
         trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textGrey),
-        onTap: () {},
+        onTap: onTap ?? () {},
       ),
     );
   }

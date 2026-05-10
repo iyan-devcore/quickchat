@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/chat_prefs_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/message_bubble.dart';
 import '../../models/message_model.dart';
@@ -201,6 +202,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context, listen: false).currentUser;
+    final chatPrefs  = context.watch<ChatPrefsProvider>();
 
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
@@ -336,7 +338,9 @@ class _ChatScreenState extends State<ChatScreen> {
           body: Column(
             children: [
               Expanded(
-                child: messages.isEmpty
+                child: _buildChatBackground(
+                  chatPrefs,
+                  child: messages.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -383,6 +387,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               message: message,
                               isMe: isMe,
                               senderName: widget.isGroup ? chatProvider.getSenderName(message.senderId) : null,
+                              bubbleColor: isMe ? chatPrefs.myBubbleColor : null,
                               onLongPress: () {
                                 if (!message.isDeleted) _showMessageOptions(context, message, chatProvider, isMe);
                               },
@@ -390,6 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           );
                         },
                       ),
+                ),
               ),
               _buildInputArea(context),
             ],
@@ -397,6 +403,40 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     );
+  }
+
+  /// Wraps [child] in the appropriate wallpaper background.
+  Widget _buildChatBackground(ChatPrefsProvider prefs, {required Widget child}) {
+    switch (prefs.wallpaperType) {
+      case WallpaperType.gradient:
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: ChatPrefsProvider.gradients[prefs.wallpaperGradientIndex],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: child,
+        );
+      case WallpaperType.image:
+        if (prefs.wallpaperImagePath != null) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.file(
+                File(prefs.wallpaperImagePath!),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox(),
+              ),
+              child,
+            ],
+          );
+        }
+        return child;
+      default:
+        return child;
+    }
   }
 
   Widget _buildInputArea(BuildContext context) {

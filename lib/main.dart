@@ -5,6 +5,7 @@ import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/call_provider.dart';
+import 'providers/chat_prefs_provider.dart';
 import 'utils/app_theme.dart';
 import 'screens/auth/splash_screen.dart';
 
@@ -15,11 +16,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  // Load chat customization preferences from disk
+  final chatPrefs = ChatPrefsProvider();
+  await chatPrefs.load();
+  runApp(MyApp(chatPrefs: chatPrefs));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ChatPrefsProvider chatPrefs;
+  const MyApp({super.key, required this.chatPrefs});
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +34,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => CallProvider()),
+        ChangeNotifierProvider<ChatPrefsProvider>.value(value: chatPrefs),
       ],
       child: MaterialApp(
         title: 'QuickChat',

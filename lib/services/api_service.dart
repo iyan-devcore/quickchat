@@ -223,4 +223,32 @@ class ApiService {
       body: jsonEncode(callData),
     );
   }
+
+  // ─────────────────────────────────────────
+  // Profile Endpoints
+  // ─────────────────────────────────────────
+
+  /// Update the current user's profile (name, about, avatarUrl).
+  Future<Map<String, dynamic>> updateProfile({
+    String? name,
+    String? about,
+    String? avatarUrl,
+  }) async {
+    final response = await http.patch(
+      Uri.parse('${AppConstants.baseUrl}/api/auth/profile'),
+      headers: _headers,
+      body: jsonEncode({
+        if (name != null) 'name': name,
+        if (about != null) 'about': about,
+        if (avatarUrl != null) 'avatarUrl': avatarUrl,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return data;
+    } else {
+      throw Exception(data['error'] ?? 'Failed to update profile');
+    }
+  }
 }
