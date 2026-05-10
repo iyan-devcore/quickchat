@@ -7,21 +7,14 @@ import 'package:flutter/foundation.dart';
 /// For local development with Flutter web, localhost works directly.
 /// For mobile emulators, use 10.0.2.2 (Android) or localhost (iOS).
 class AppConstants {
-  static String get _host {
-    if (kIsWeb) {
-      return 'localhost';
-    } else if (Platform.isAndroid) {
-      return '10.0.2.2'; // Mapped to the host machine's localhost in Android Emulator
-    } else {
-      return 'localhost'; // iOS Simulator and Desktop apps
-    }
-  }
+  // The live backend deployed on Railway
+  static const String _productionUrl = 'https://quickchat-production-f3b8.up.railway.app';
 
   /// Base URL for REST API calls
-  static String get baseUrl => 'http://$_host:5000';
+  static String get baseUrl => _productionUrl;
 
   /// Socket.io server URL (same as API server)
-  static String get socketUrl => 'http://$_host:5000';
+  static String get socketUrl => _productionUrl;
 
   /// SharedPreferences key for storing JWT token
   static const String tokenKey = 'auth_token';
