@@ -35,7 +35,7 @@ class _ChatCustomizationScreenState extends State<ChatCustomizationScreen>
   // ── Pick image from gallery ───────────────────────────────
   Future<void> _pickWallpaperImage(ChatPrefsProvider prefs) async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.image,
         withData: false,
       );

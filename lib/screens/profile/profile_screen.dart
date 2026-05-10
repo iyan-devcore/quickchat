@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Pick an image with FilePicker, upload to the server, then save the URL.
   Future<void> _pickAndUploadPhoto() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.image,
         withData: true,
       );
