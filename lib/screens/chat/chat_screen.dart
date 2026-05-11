@@ -130,11 +130,23 @@ class _ChatScreenState extends State<ChatScreen> {
             var json = jsonDecode(responseData);
             var url = json['url'];
             var fileSize = result.files.first.size;
+            
+            // Auto-detect if it's actually an image
+            String finalType = type;
+            if (type == 'file') {
+              final ext = fileName.split('.').last.toLowerCase();
+              if (['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext)) {
+                finalType = 'image';
+              } else if (['mp4', 'mov', 'avi'].contains(ext)) {
+                finalType = 'video'; // if you support video previews later
+              }
+            }
+
             if (mounted) {
               Provider.of<ChatProvider>(context, listen: false).sendMessage(
                 widget.chatId, url,
                 otherUserId: widget.otherUserId, isGroup: widget.isGroup,
-                type: type, replyTo: _replyingMessage?.id,
+                type: finalType, replyTo: _replyingMessage?.id,
                 fileName: fileName,
                 fileSize: fileSize,
               );
