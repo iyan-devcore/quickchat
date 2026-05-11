@@ -251,4 +251,31 @@ class ApiService {
       throw Exception(data['error'] ?? 'Failed to update profile');
     }
   }
+  // ─────────────────────────────────────────
+  // File Endpoints
+  // ─────────────────────────────────────────
+
+  /// Upload a file to the server.
+  Future<Map<String, dynamic>> uploadFile(String filePath) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${AppConstants.baseUrl}/api/upload'),
+    );
+    
+    if (_token != null) {
+      request.headers['Authorization'] = 'Bearer $_token';
+    }
+
+    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Failed to upload file');
+    }
+  }
 }

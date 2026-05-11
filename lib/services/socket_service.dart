@@ -90,6 +90,8 @@ class SocketService {
     bool isEncrypted = false,
     bool isGroup = false,
     String? replyTo,
+    String? fileName,
+    int? fileSize,
   }) {
     _socket?.emit('send_message', {
       'roomId': roomId,
@@ -100,6 +102,8 @@ class SocketService {
       'isEncrypted': isEncrypted,
       'isGroup': isGroup,
       'replyTo': replyTo,
+      'fileName': fileName,
+      'fileSize': fileSize,
     });
   }
 

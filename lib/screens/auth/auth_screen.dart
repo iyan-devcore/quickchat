@@ -237,7 +237,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                       ),
                       const SizedBox(height: 32),
                       Text(
-                        'Nexus',
+                        'QuickChat',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 36,
                           fontWeight: FontWeight.w900,

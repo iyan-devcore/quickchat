@@ -509,7 +509,7 @@ class ChatProvider with ChangeNotifier {
   }
 
   /// Send a message to a room via Socket.io.
-  Future<void> sendMessage(String roomId, String content, {String? otherUserId, bool isGroup = false, String type = 'text', String? replyTo}) async {
+  Future<void> sendMessage(String roomId, String content, {String? otherUserId, bool isGroup = false, String type = 'text', String? replyTo, String? fileName, int? fileSize}) async {
     if (_socketService == null || _encryptionService == null || content.trim().isEmpty) return;
 
     if (isGroup) {
@@ -529,6 +529,8 @@ class ChatProvider with ChangeNotifier {
             isEncrypted: true,
             type: type,
             replyTo: replyTo,
+            fileName: fileName,
+            fileSize: fileSize,
           );
           return;
         } catch (e) {
@@ -563,6 +565,9 @@ class ChatProvider with ChangeNotifier {
             mac: encryptedData['mac'],
             isEncrypted: true,
             type: type,
+            replyTo: replyTo,
+            fileName: fileName,
+            fileSize: fileSize,
           );
           return;
         } catch (e) {
@@ -572,7 +577,7 @@ class ChatProvider with ChangeNotifier {
     }
 
     // Fallback: send unencrypted
-    _socketService!.sendMessage(roomId, content.trim(), isEncrypted: false, type: type, replyTo: replyTo);
+    _socketService!.sendMessage(roomId, content.trim(), isEncrypted: false, type: type, replyTo: replyTo, fileName: fileName, fileSize: fileSize);
   }
 
   void deleteMessage(String messageId, String roomId) {
@@ -701,6 +706,9 @@ class ChatProvider with ChangeNotifier {
       mac: message.mac,
       isEncrypted: message.isEncrypted,
       isGroup: message.isGroup,
+      replyTo: message.replyTo,
+      fileName: message.fileName,
+      fileSize: message.fileSize,
     );
   }
 

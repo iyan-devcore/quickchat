@@ -129,7 +129,7 @@ io.on('connection', async (socket) => {
   // ─────────────────────────────────────────
   socket.on('send_message', async (data) => {
     try {
-      const { roomId, content, type = 'text', iv, mac, isEncrypted = false, isGroup = false, replyTo = null } = data;
+      const { roomId, content, type = 'text', iv, mac, isEncrypted = false, isGroup = false, replyTo = null, fileName, fileSize } = data;
 
       // 1. Save message to MongoDB
       const message = new Message({
@@ -143,6 +143,8 @@ io.on('connection', async (socket) => {
         isEncrypted,
         isGroup,
         replyTo,
+        fileName,
+        fileSize,
       });
       await message.save();
 
@@ -160,6 +162,8 @@ io.on('connection', async (socket) => {
         isEncrypted: message.isEncrypted,
         isGroup: message.isGroup,
         replyTo: message.replyTo ? message.replyTo.toString() : null,
+        fileName: message.fileName,
+        fileSize: message.fileSize,
         reactions: [],
       };
 

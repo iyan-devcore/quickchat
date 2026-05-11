@@ -24,6 +24,8 @@ class Message {
   final bool isGroup;
   final String? replyTo;
   final Map<String, String> reactions;
+  final String? fileName;
+  final int? fileSize;
 
   Message({
     required this.id,
@@ -41,6 +43,8 @@ class Message {
     this.isGroup = false,
     this.replyTo,
     this.reactions = const {},
+    this.fileName,
+    this.fileSize,
   });
 
   Message copyWith({
@@ -59,6 +63,8 @@ class Message {
     bool? isGroup,
     String? replyTo,
     Map<String, String>? reactions,
+    String? fileName,
+    int? fileSize,
   }) {
     return Message(
       id: id ?? this.id,
@@ -76,6 +82,8 @@ class Message {
       isGroup: isGroup ?? this.isGroup,
       replyTo: replyTo ?? this.replyTo,
       reactions: reactions ?? this.reactions,
+      fileName: fileName ?? this.fileName,
+      fileSize: fileSize ?? this.fileSize,
     );
   }
 
@@ -98,6 +106,8 @@ class Message {
       isEncrypted: json['isEncrypted'] ?? false,
       isGroup: json['isGroup'] ?? false,
       replyTo: json['replyTo']?.toString(),
+      fileName: json['fileName']?.toString(),
+      fileSize: json['fileSize'] is int ? json['fileSize'] : (json['fileSize'] != null ? int.tryParse(json['fileSize'].toString()) : null),
       reactions: json['reactions'] != null
           ? Map.fromEntries(
               (json['reactions'] as List).map((r) => MapEntry(r['userId'].toString(), r['emoji'].toString()))
@@ -123,6 +133,8 @@ class Message {
       'isEncrypted': isEncrypted,
       'isGroup': isGroup,
       'replyTo': replyTo,
+      'fileName': fileName,
+      'fileSize': fileSize,
       'reactions': reactions.entries.map((e) => {'userId': e.key, 'emoji': e.value}).toList(),
     };
   }

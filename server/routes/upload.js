@@ -30,7 +30,13 @@ router.post('/', upload.single('file'), (req, res) => {
   }
 
   const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-  res.json({ url: fileUrl, filename: req.file.filename, mimetype: req.file.mimetype });
+  res.json({
+    url: fileUrl,
+    filename: req.file.filename,
+    originalname: req.file.originalname,
+    mimetype: req.file.mimetype,
+    size: req.file.size
+  });
 });
 
 module.exports = router;

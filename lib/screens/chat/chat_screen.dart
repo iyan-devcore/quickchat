@@ -16,6 +16,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:swipe_to/swipe_to.dart';
 import '../../utils/constants.dart';
 import 'call_screen.dart';
 
@@ -128,12 +129,14 @@ class _ChatScreenState extends State<ChatScreen> {
             var responseData = await response.stream.bytesToString();
             var json = jsonDecode(responseData);
             var url = json['url'];
-            var contentToSend = type == 'file' ? '$url|||$fileName' : url;
+            var fileSize = result.files.first.size;
             if (mounted) {
               Provider.of<ChatProvider>(context, listen: false).sendMessage(
-                widget.chatId, contentToSend,
+                widget.chatId, url,
                 otherUserId: widget.otherUserId, isGroup: widget.isGroup,
                 type: type, replyTo: _replyingMessage?.id,
+                fileName: fileName,
+                fileSize: fileSize,
               );
               setState(() => _replyingMessage = null);
               _scrollToBottom();
@@ -370,19 +373,19 @@ class _ChatScreenState extends State<ChatScreen> {
                         itemBuilder: (context, index) {
                           final message = messages[index];
                           final isMe = message.senderId == currentUser?.id;
-                          return Dismissible(
+                          return SwipeTo(
                             key: Key(message.id),
-                            direction: DismissDirection.startToEnd,
-                            confirmDismiss: (direction) async {
-                              if (message.isDeleted) return false;
+                            iconOnRightSwipe: Icons.reply_rounded,
+                            iconOnLeftSwipe: Icons.reply_rounded,
+                            iconColor: AppColors.primary,
+                            onRightSwipe: (details) {
+                              if (message.isDeleted) return;
                               setState(() { _replyingMessage = message; _editingMessage = null; });
-                              return false;
                             },
-                            background: Container(
-                              alignment: Alignment.centerLeft,
-                              padding: const EdgeInsets.only(left: 20),
-                              child: const Icon(Icons.reply_rounded, color: AppColors.primary),
-                            ),
+                            onLeftSwipe: (details) {
+                              if (message.isDeleted) return;
+                              setState(() { _replyingMessage = message; _editingMessage = null; });
+                            },
                             child: MessageBubble(
                               message: message,
                               isMe: isMe,
@@ -610,59 +613,76 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _showMessageOptions(BuildContext context, Message message, ChatProvider chatProvider, bool isMe) {
     final List<String> emojis = ['❤️', '😂', '👍', '😮', '😢', '👏'];
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      barrierColor: Colors.black45,
       builder: (context) {
-        return SafeArea(
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Reaction Bar
               Container(
-                width: 40, height: 5,
-                margin: const EdgeInsets.only(top: 12, bottom: 20),
-                decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(3)),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
+                ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisSize: MainAxisSize.min,
                   children: emojis.map((emoji) => GestureDetector(
                     onTap: () {
                       chatProvider.toggleReaction(message.roomId, message.id, emoji);
                       Navigator.pop(context);
                     },
-                    child: Text(emoji, style: const TextStyle(fontSize: 32)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(emoji, style: const TextStyle(fontSize: 28)),
+                    ),
                   )).toList(),
                 ),
               ),
-              const SizedBox(height: 12),
-              if (isMe) const Divider(height: 1, color: AppColors.dividerDark),
-              if (isMe && message.type == MessageType.text)
-                ListTile(
-                  leading: const Icon(Icons.edit_rounded, color: AppColors.primary),
-                  title: Text('Edit message', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: Colors.white)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    setState(() {
-                      _editingMessage = message;
-                      _messageController.text = message.content;
-                      _messageController.selection = TextSelection.fromPosition(TextPosition(offset: _messageController.text.length));
-                      _isTyping = true;
-                    });
-                  },
+              const SizedBox(height: 16),
+              // Options Menu
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              if (isMe)
-                ListTile(
-                  leading: const Icon(Icons.delete_rounded, color: Colors.redAccent),
-                  title: Text('Delete for everyone', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: Colors.redAccent)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    chatProvider.deleteMessage(message.id, message.roomId);
-                  },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isMe && message.type == MessageType.text)
+                      ListTile(
+                        leading: const Icon(Icons.edit_rounded, color: AppColors.primary),
+                        title: Text('Edit message', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: Colors.white)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            _editingMessage = message;
+                            _messageController.text = message.content;
+                            _messageController.selection = TextSelection.fromPosition(TextPosition(offset: _messageController.text.length));
+                            _isTyping = true;
+                          });
+                        },
+                      ),
+                    if (isMe && message.type == MessageType.text)
+                      const Divider(height: 1, color: AppColors.dividerDark),
+                    if (isMe)
+                      ListTile(
+                        leading: const Icon(Icons.delete_rounded, color: Colors.redAccent),
+                        title: Text('Delete for everyone', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: Colors.redAccent)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          chatProvider.deleteMessage(message.id, message.roomId);
+                        },
+                      ),
+                  ],
                 ),
-              const SizedBox(height: 12),
+              ),
             ],
           ),
         );

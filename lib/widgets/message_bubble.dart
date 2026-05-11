@@ -24,6 +24,12 @@ class MessageBubble extends StatelessWidget {
     this.bubbleColor,
   });
 
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   List<Widget> _buildReactionsWidgets(Map<String, String> reactions) {
     if (reactions.isEmpty) return [];
     Map<String, int> counts = {};
@@ -42,13 +48,14 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var extractedUrl = message.content;
-    var displayFileName = "File Attachment";
+    var displayFileName = message.fileName ?? "File Attachment";
+    var displayFileSize = message.fileSize;
 
     if (message.type == MessageType.file && message.content.contains('|||')) {
       var parts = message.content.split('|||');
       extractedUrl = parts[0];
       displayFileName = parts[1];
-    } else if (message.type == MessageType.file) {
+    } else if (message.type == MessageType.file && message.fileName == null) {
       displayFileName = message.content.split('/').last;
     }
 
@@ -205,21 +212,42 @@ class MessageBubble extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.insert_drive_file_rounded,
-                                color: textColor.withOpacity(0.8),
-                                size: 24,
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  Icons.insert_drive_file_rounded,
+                                  color: textColor,
+                                  size: 28,
+                                ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 12),
                               Flexible(
-                                child: Text(
-                                  displayFileName,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: textColor,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    decoration: TextDecoration.underline,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      displayFileName,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        color: textColor,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (displayFileSize != null)
+                                      Text(
+                                        _formatFileSize(displayFileSize),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: subtitleColor,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ],

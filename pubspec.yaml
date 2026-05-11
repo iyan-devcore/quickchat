@@ -51,6 +51,7 @@ dependencies:
   path_provider: ^2.1.5
   permission_handler: ^12.0.1
   flutter_webrtc: ^1.4.1
+  swipe_to: ^1.0.6
 
 dev_dependencies:
   flutter_test:

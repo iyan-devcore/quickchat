@@ -46,6 +46,12 @@ const messageSchema = new mongoose.Schema({
     enum: ['text', 'image', 'audio', 'video', 'file'],
     default: 'text',
   },
+  fileName: {
+    type: String,
+  },
+  fileSize: {
+    type: Number,
+  },
   status: {
     type: String,
     enum: ['sent', 'delivered', 'read'],
