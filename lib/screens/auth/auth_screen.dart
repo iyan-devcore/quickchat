@@ -10,6 +10,7 @@ import '../../providers/chat_provider.dart';
 import '../../providers/call_provider.dart';
 import '../home/home_screen.dart';
 import 'verify_email_screen.dart';
+import 'forgot_password_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -347,7 +348,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ForgotPasswordScreen(),
+                    ),
+                  );
+                },
                 child: Text(
                   'Forgot password?',
                   style: GoogleFonts.plusJakartaSans(

@@ -215,6 +215,32 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  /// Send a password-reset email via Firebase Auth.
+  ///
+  /// Returns true on success. On failure the error message is stored in
+  /// [errorMessage] so the UI can display it without throwing.
+  Future<bool> forgotPassword(String email) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await firebase_auth.FirebaseAuth.instance
+          .sendPasswordResetEmail(email: email.toLowerCase().trim());
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e
+          .toString()
+          .replaceAll(RegExp(r'^\[.*\]\s*'), '')
+          .replaceFirst('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Logout: clear everything and disconnect.
   Future<void> logout() async {
     try {
